@@ -139,8 +139,9 @@
   /* =====================================================================
    * Tela: Início
    * ===================================================================== */
-  function viewHome() {
+  function viewHome(param) {
     const docs = K.store.load();
+    const sess = K.auth.current();
     const sts = docs.map((d) => K.summary(d).status);
     const count = (st) => sts.filter((s) => s === st).length;
     const recent = [...docs].sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 3);
@@ -156,16 +157,12 @@
           <a class="btn outline-light" href="#/documentos">Meus documentos (${docs.length})</a>
         </div>
       </div>
-      <div class="hero-card" aria-hidden="true">
-        <div class="hc-label">Prévia · Prestação de serviços</div>
-        <div class="hc-title">CONTRATO DE PRESTAÇÃO DE SERVIÇOS</div>
-        <div class="line"></div><div class="line w80"></div><div class="line w60"></div>
-        <ul class="hc-checks">
-          <li class="ok"><span>✓</span> CNPJs válidos das duas partes</li>
-          <li class="ok"><span>✓</span> Valor confere com o extenso</li>
-          <li class="warn"><span>!</span> 1 campo a preencher</li>
-        </ul>
-      </div>
+      <div class="auth-card" id="authCard">${authCardHTML(sess)}</div>
+    </section>
+    <section class="section home-plans" id="planos-home">
+      <div class="head center"><div class="eyebrow">Planos</div><h2>Comece grátis. Evolua quando precisar.</h2><p>O Grátis já cria contratos com editor e checklist. O Pro libera os 10 tipos de contrato, a análise automática e o revisor.</p></div>
+      ${plansCardsHTML()}
+      <p class="center sm"><a href="#/planos">Comparar os planos em detalhe e ver o kit físico →</a></p>
     </section>
     <div class="stats">
       <a href="#/documentos"><b>${docs.length}</b><small>Documentos salvos</small></a>
@@ -175,7 +172,7 @@
     </div>
     <section class="section">
       <div class="head"><div class="eyebrow">Comece por aqui</div><h2>Qual contrato você precisa?</h2><p>Escolha uma categoria para abrir o formulário já configurado para ela.</p></div>
-      <div class="type-grid">${Object.entries(K.TYPES).map(([k, t]) => `<a class="type-tile" href="#/novo/${k}"><span class="ico">${t.icon}</span><b>${esc(t.label)}</b><small>${esc(t.desc)}</small></a>`).join('')}</div>
+      <div class="type-grid">${Object.entries(K.TYPES).map(([k, t]) => `<a class="type-tile ${t.pro ? 'is-pro' : ''}" href="#/novo/${k}">${t.pro ? '<span class="pro-tag">PRO</span>' : ''}<span class="ico">${t.icon}</span><b>${esc(t.label)}</b><small>${esc(t.desc)}</small></a>`).join('')}</div>
     </section>
     ${recent.length ? `<section class="section alt">
       <div class="head row"><div><div class="eyebrow">Seus documentos</div><h2>Continue de onde parou</h2></div><a class="btn ghost" href="#/documentos">Ver todos →</a></div>
@@ -194,14 +191,6 @@
         <div><b>Ficou com dúvida? Pergunte ao assistente jurídico.</b><p>Ele explica termos, encontra pendências no contrato aberto e sugere cláusulas prontas.</p></div>
         <button class="btn primary" data-open-assistant>Abrir assistente</button>
       </div>
-    </section>
-    <section class="section plans-teaser">
-      <div class="pt-text">
-        <div class="eyebrow light">Planos</div>
-        <h2>Comece grátis. Evolua quando precisar.</h2>
-        <p>No Grátis você cria ${K.PLANS.gratis.docs} contratos por mês com editor e checklist. O Pro libera contratos ilimitados, assistente sem limites e exportação sem marca d’água por ${K.price(K.PLANS.pro.mensal)}/mês.</p>
-      </div>
-      <div class="actions"><a class="btn white" href="#/planos">Ver planos e preços →</a></div>
     </section>
     <section class="section alt">
       <div class="head"><div class="eyebrow">Conheça a proposta</div><h2>Um kit. Três formas de ajudar.</h2><p>O conceito acadêmico reúne modelos de documentos, conferência de informações e explicações acessíveis em uma única solução.</p></div>
@@ -223,6 +212,82 @@
     </section>`;
     const rc = $('#recent');
     if (rc) bindDocActions(rc, viewHome);
+    const unbind = bindAuthCard($('#authCard'));
+    $('#planos-home').addEventListener('click', (e) => {
+      const b = e.target.closest('[data-plan]');
+      if (b) planAction(b.dataset.plan, b.dataset.ciclo, () => viewHome());
+    });
+    cleanup = unbind;
+    if (param === 'entrar') {
+      const f = $('#loginUser');
+      if (f) { $('#authCard').scrollIntoView({ block: 'center' }); f.focus({ preventScroll: true }); }
+      history.replaceState(null, '', '#/inicio');
+    }
+  }
+
+  /* ---------- Cartão de login da página inicial (simulado e opcional) ---------- */
+  function authCardHTML(sess) {
+    if (sess) {
+      return `<div class="auth-hello"><span class="avatar lg" aria-hidden="true">${esc((sess.nome.trim()[0] || '?').toUpperCase())}</span>
+          <div><small>Que bom ter você aqui</small><b>Olá, ${esc(K.auth.firstName())}!</b><span class="muted sm">Plano ${esc(K.plan.label())}</span></div></div>
+        <div class="auth-links"><a class="btn primary full" href="#/novo">Criar novo contrato</a><a class="btn ghost full" href="#/documentos">Meus documentos</a></div>
+        <button type="button" class="link center-link" data-logout>Sair da conta</button>`;
+    }
+    return `<div class="auth-tabs" role="tablist" aria-label="Acesso">
+        <button type="button" role="tab" data-auth-tab="entrar" class="on" aria-selected="true">Entrar</button>
+        <button type="button" role="tab" data-auth-tab="criar" aria-selected="false">Criar conta</button>
+      </div>
+      <form class="auth-form" id="loginForm" novalidate>
+        <div class="field"><label for="loginUser">Usuário ou e-mail</label><input id="loginUser" autocomplete="username"></div>
+        <div class="field"><label for="loginPass">Senha</label><input id="loginPass" type="password" autocomplete="current-password"></div>
+        <small class="err" id="loginErr" role="alert"></small>
+        <button class="btn primary full" type="submit">Entrar</button>
+        <p class="auth-demo">Para testar: usuário <b>${K.auth.DEMO_USER}</b> e senha <b>${K.auth.DEMO_PASS}</b>. <button type="button" class="link" data-fill-demo>Preencher</button></p>
+      </form>
+      <form class="auth-form" id="signupForm" novalidate hidden>
+        <div class="field"><label for="suNome">Nome</label><input id="suNome" autocomplete="name"></div>
+        <div class="field"><label for="suUser">Usuário ou e-mail</label><input id="suUser" autocomplete="username"></div>
+        <div class="field"><label for="suPass">Senha (mínimo 6 caracteres)</label><input id="suPass" type="password" autocomplete="new-password"></div>
+        <small class="err" id="signupErr" role="alert"></small>
+        <button class="btn primary full" type="submit">Criar conta</button>
+      </form>
+      <div class="auth-or"><span>ou</span></div>
+      <a class="btn ghost full" href="#/novo">Continuar sem login →</a>
+      <p class="auth-note">Login simulado para a demonstração: os dados ficam só neste navegador. Não use uma senha real.</p>`;
+  }
+
+  function bindAuthCard(card) {
+    const redraw = () => { card.innerHTML = authCardHTML(K.auth.current()); };
+    card.addEventListener('click', (e) => {
+      const tab = e.target.closest('[data-auth-tab]');
+      if (tab) {
+        const criar = tab.dataset.authTab === 'criar';
+        card.querySelectorAll('[data-auth-tab]').forEach((b) => { const on = b === tab; b.classList.toggle('on', on); b.setAttribute('aria-selected', on); });
+        $('#loginForm', card).hidden = criar;
+        $('#signupForm', card).hidden = !criar;
+        $(criar ? '#suNome' : '#loginUser', card).focus();
+      }
+      if (e.target.closest('[data-fill-demo]')) { $('#loginUser', card).value = K.auth.DEMO_USER; $('#loginPass', card).value = K.auth.DEMO_PASS; $('#loginPass', card).focus(); }
+      if (e.target.closest('[data-logout]')) { K.auth.logout(); K.toast('Você saiu da conta.'); }
+    });
+    card.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (e.target.id === 'loginForm') {
+        const u = $('#loginUser', card).value, pw = $('#loginPass', card).value;
+        if (!u.trim() || !pw) { $('#loginErr', card).textContent = 'Informe o usuário e a senha.'; return; }
+        if (!K.auth.login(u, pw)) { $('#loginErr', card).textContent = 'Usuário ou senha incorretos.'; $('#loginPass', card).select(); return; }
+        K.toast(`Bem-vindo(a), ${K.auth.firstName()}!`);
+      } else {
+        const n = $('#suNome', card).value.trim(), u = $('#suUser', card).value.trim(), pw = $('#suPass', card).value;
+        const err = $('#signupErr', card);
+        if (!n || !u) { err.textContent = 'Preencha nome e usuário.'; return; }
+        if (pw.length < 6) { err.textContent = 'A senha precisa ter pelo menos 6 caracteres.'; $('#suPass', card).focus(); return; }
+        if (K.auth.register(n, u, pw) === 'existe') { err.textContent = 'Esse usuário já existe. Escolha outro ou entre.'; return; }
+        K.toast(`Conta criada! Bem-vindo(a), ${K.auth.firstName()}.`);
+      }
+    });
+    document.addEventListener('kcf:auth', redraw);
+    return () => document.removeEventListener('kcf:auth', redraw);
   }
 
   /* =====================================================================
@@ -322,6 +387,7 @@
     d.p1 = d.p1 || {}; d.p2 = d.p2 || {}; d.extras = d.extras || {};
     t.extras.forEach((x) => { if (x.options && !x.options.includes(d.extras[x.k])) d.extras[x.k] = x.options[0]; });
     if (t.vigencia && !d.prazoMeses) d.prazoMeses = '12';
+    if (t.pagamentoPadrao && (!d.pagamento || d.pagamento === 'avista')) d.pagamento = t.pagamentoPadrao;
     if ((t.vencimento || d.pagamento === 'mensal') && !d.vencimento) d.vencimento = '10';
     return d;
   }
@@ -377,9 +443,10 @@
       form.innerHTML = `
       <div class="step"><span>1</span><h3>Tipo de contrato</h3></div>
       <div class="type-pick" role="radiogroup" aria-label="Tipo de contrato">
-        ${Object.entries(K.TYPES).map(([k, x]) => `<label class="tp ${draft.tipo === k ? 'on' : ''}"><input type="radio" name="tipo" value="${k}" ${draft.tipo === k ? 'checked' : ''}><span class="ico">${x.icon}</span><b>${esc(x.label)}</b></label>`).join('')}
+        ${Object.entries(K.TYPES).map(([k, x]) => `<label class="tp ${draft.tipo === k ? 'on' : ''} ${x.pro ? 'is-pro' : ''}"><input type="radio" name="tipo" value="${k}" ${draft.tipo === k ? 'checked' : ''}>${x.pro ? '<span class="pro-tag">PRO</span>' : ''}<span class="ico">${x.icon}</span><b>${esc(x.label)}</b></label>`).join('')}
       </div>
       <p class="hint type-desc">${esc(t.desc)}</p>
+      ${t.pro && !K.plan.info().proTypes ? `<div class="pro-note">💼 <span><b>Modelo exclusivo do Pro.</b> Você pode preencher e ver a prévia à vontade; para gerar o contrato, é preciso assinar o Pro.</span></div>` : ''}
 
       <div class="step"><span>2</span><h3>Partes</h3></div>
       ${['p1', 'p2'].map((p, i) => `<fieldset class="party"><legend>${esc(t[p + 'Label'])}</legend>
@@ -400,7 +467,7 @@
       </div>
 
       <div class="step"><span>4</span><h3>Detalhes de ${esc(t.label.toLowerCase())}</h3></div>
-      <div class="two">${t.extras.map((x) => field('extras.' + x.k, x.label, { ph: x.ph, options: x.options, textarea: x.textarea, cls: x.textarea ? 'span2' : '' })).join('')}</div>
+      <div class="two">${t.extras.map((x) => field('extras.' + x.k, x.label, { ph: x.ph, options: x.options, textarea: x.textarea, type: x.type, attrs: x.type === 'number' ? 'min="0" step="0.1" inputmode="decimal"' : '', cls: x.textarea ? 'span2' : '' })).join('')}</div>
 
       <div class="step"><span>5</span><h3>Prazos, foro e multa</h3></div>
       <div class="two">
@@ -533,7 +600,8 @@
         K.toast('Revise os campos destacados em vermelho.', 'error');
         return;
       }
-      if (!K.plan.canCreate() && (await K.upsell('docs')) !== 'trial') return;
+      if (typeOf(draft.tipo).pro && !K.plan.info().proTypes && (await K.upsell('tipos')) !== 'pro') return;
+      if (!K.plan.canCreate() && (await K.upsell('docs')) !== 'pro') return;
       const doc = K.newDoc(K.clone(draft));
       doc.origin = 'form';
       K.store.upsert(doc);
@@ -660,21 +728,23 @@
     function renderSide() {
       const s = K.summary(doc);
       const pct = Math.round((s.done / s.total) * 100);
+      const nAuto = s.auto ? K.countAutoFixes(doc) : 0;
       side.innerHTML = `
         <div class="side-head"><h4>Checklist</h4>${badge(s.status)}</div>
         <div class="progress"><div style="width:${pct}%"></div></div>
         <p class="muted sm">${s.done} de ${s.total} itens confirmados${s.fails ? ` · <b class="txt-fail">${s.fails} problema(s)</b>` : ''}${s.warns ? ` · <b class="txt-warn">${s.warns} atenção</b>` : ''}</p>
-        ${s.auto ? '' : `<div class="auto-lock"><b>🔒 Análise automática · Pro</b><p>No plano Grátis você confere marcando cada item à mão. No Pro, o checklist lê o contrato e aponta sozinho CPF/CNPJ inválidos, valores que não batem com o extenso e campos em branco.</p><button type="button" class="btn primary sm" data-upsell-auto>Testar o Pro grátis</button></div>`}
-        <ul class="side-list">${s.res.map((r) => s.auto ? `
+        ${s.auto ? '' : `<div class="auto-lock"><b>🔒 Análise automática · Pro</b><p>No plano Grátis você confere marcando cada item à mão. No Pro, o checklist lê o contrato e aponta sozinho CPF/CNPJ inválidos, valores que não batem com o extenso e campos em branco.</p><button type="button" class="btn primary sm" data-upsell-auto>Assinar o Pro</button></div>`}
+        ${s.auto && nAuto ? `<button type="button" class="btn primary sm full fix-all" data-fix-all>🔧 Arrumar tudo automaticamente (${nAuto})</button>` : ''}
+        <ul class="side-list">${s.res.map((r) => { const fx = s.auto ? K.fixFor(doc, r) : null; return s.auto ? `
           <li class="si ${r.status} ${doc.checks[r.id] ? 'done' : ''}">
             <label><input type="checkbox" data-ck="${r.id}" ${doc.checks[r.id] ? 'checked' : ''}>
               <span><b>${esc(r.title)}</b><small><span class="ic" aria-hidden="true">${CHIP[r.status][1]}</span> ${esc(r.msg)}</small></span></label>
-            ${r.clause ? `<button type="button" class="link" data-go="${r.clause}">Ir para a cláusula →</button>` : ''}
+            <div class="si-actions">${fx ? `<button type="button" class="fix-btn ${fx.auto ? 'auto' : ''}" data-fix="${r.id}" title="${fx.auto ? 'Corrige o texto automaticamente' : 'Leva até o trecho para você corrigir'}">${fx.auto ? '🔧' : '✏️'} ${esc(fx.label)}</button>` : ''}${r.clause ? `<button type="button" class="link" data-go="${r.clause}">Ir para a cláusula →</button>` : ''}</div>
           </li>` : `
           <li class="si manual-only ${doc.checks[r.id] ? 'done' : ''}">
             <label><input type="checkbox" data-ck="${r.id}" ${doc.checks[r.id] ? 'checked' : ''}>
               <span><b>${esc(r.title)}</b><small>${esc(r.desc)}</small></span></label>
-          </li>`).join('')}</ul>
+          </li>`; }).join('')}</ul>
         <div class="side-actions">
           <button type="button" class="btn ghost sm" id="ckPrint">🖨 Imprimir relatório</button>
           <button type="button" class="btn ghost sm" id="ckNone" ${s.done ? '' : 'disabled'}>Desmarcar todos</button>
@@ -691,6 +761,33 @@
         if (t) { t.focus({ preventScroll: true }); if (selectTitle) t.select(); }
       }
     }
+    /** Leva até a cláusula e seleciona o trecho indicado (usado pelo revisor). */
+    function selectText(cid, text) {
+      if (mode !== 'edit') setMode('edit');
+      const el = $('#cl-' + cid);
+      if (!el) return;
+      const ta = el.querySelector('.clause-body');
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+      const i = text ? ta.value.indexOf(text) : -1;
+      ta.focus({ preventScroll: true });
+      if (i >= 0) ta.setSelectionRange(i, i + text.length);
+    }
+    function runFix(id) {
+      const r = K.evaluate(doc).find((x) => x.id === id);
+      const fx = K.fixFor(doc, r);
+      if (!fx) { renderSide(); return; }
+      if (fx.guided) {
+        if (fx.clause) selectText(fx.clause, fx.text);
+        K.toast(fx.hint || 'Corrija o trecho selecionado.', 'warn');
+        return;
+      }
+      K.snapshot(doc, `Antes do revisor: ${fx.label}`);
+      const msg = fx.apply(doc);
+      structural();
+      K.toast('🔧 ' + msg + ' (dá para desfazer em Versões)');
+    }
+
     function structural(focus) {
       renderPaperMode();
       renderOutline();
@@ -797,6 +894,16 @@
     outline.addEventListener('click', (e) => { const b = e.target.closest('[data-go]'); if (b) go(b.dataset.go); });
     side.addEventListener('click', (e) => {
       if (e.target.closest('[data-upsell-auto]')) { K.upsell('auto'); return; }
+      const fb = e.target.closest('[data-fix]');
+      if (fb) { runFix(fb.dataset.fix); return; }
+      if (e.target.closest('[data-fix-all]')) {
+        K.snapshot(doc, 'Antes do revisor: arrumar tudo');
+        const msgs = K.fixAll(doc);
+        structural();
+        const guiadas = K.evaluate(doc).map((r) => K.fixFor(doc, r)).filter((f) => f && f.guided).length;
+        K.toast(`🔧 ${msgs.length} correção(ões) aplicada(s).${guiadas ? ` Ainda ${guiadas > 1 ? 'há ' + guiadas + ' pontos' : 'há 1 ponto'} para você completar.` : ''} (dá para desfazer em Versões)`);
+        return;
+      }
       const b = e.target.closest('[data-go]');
       if (b) go(b.dataset.go);
       if (e.target.closest('#ckPrint')) { if (dirty) persist(); printReport(doc); }
@@ -1001,44 +1108,81 @@
   }
 
   /* =====================================================================
-   * Tela: Kit físico (o que vem na pasta + visualizador das folhas)
+   * Tela: Kit físico — a pessoa monta a pasta: de 1 a 10 modelos e as cópias de cada um
    * ===================================================================== */
   function viewKit(abrir) {
     const items = K.KIT_ITEMS;
     const modelos = items.filter((i) => i.kind === 'modelo');
     const apoio = items.filter((i) => i.kind !== 'modelo');
-    const card = (it) => `
+    const basicos = Object.keys(K.TYPES).filter((k) => !K.TYPES[k].pro);
+    let sel = K.kitSel.get();
+
+    const folderHTML = () => {
+      const ms = K.kitSel.modelos();
+      const many = ms.length > 5;
+      const step = Math.min(5, 34 / Math.max(ms.length, 1));
+      return `<div class="fa-back"></div>
+        ${ms.map((m, i) => `<div class="fa-sheet ${many ? 'many' : ''}" style="--c:${m.cor};--i:${i};--step:${step}%"><span title="${esc(m.title)}">${many ? K.TYPES[m.tipo].icon : esc(m.title)}</span></div>`).join('')}
+        <div class="fa-front"><img src="assets/img/logo.svg" alt="" width="60" height="60"><b>Kit Contrato Fácil</b><small>${esc(K.kitSel.resumo())}</small></div>`;
+    };
+    const pickCard = (it) => {
+      const n = sel[it.tipo] || 0;
+      return `<div class="pick-card ${n ? 'on' : ''}" data-card="${it.tipo}" style="--c:${it.cor}">
+        <button type="button" class="pick-thumb" data-sheet="${it.id}" aria-label="Visualizar a folha de ${esc(it.title)}">${K.kitThumb(it)}<span class="pick-view">👁 Visualizar folha</span></button>
+        <div class="pick-body">
+          <span class="sheet-tag">${esc(it.tag)}</span>
+          <b>${esc(it.title)}</b>
+          <label class="pick-toggle"><input type="checkbox" data-pick="${it.tipo}" ${n ? 'checked' : ''}> Incluir na pasta</label>
+          <div class="copies" ${n ? '' : 'hidden'}>
+            <span>Cópias impressas</span>
+            <div class="stepper">
+              <button type="button" data-step="-1" data-tipo="${it.tipo}" aria-label="Uma cópia a menos">−</button>
+              <input type="number" min="1" max="${K.KIT_MAX_COPIAS}" value="${n || 1}" data-copies="${it.tipo}" inputmode="numeric" aria-label="Cópias de ${esc(it.title)}">
+              <button type="button" data-step="1" data-tipo="${it.tipo}" aria-label="Uma cópia a mais">+</button>
+            </div>
+          </div>
+        </div>
+      </div>`;
+    };
+    const apoioCard = (it) => `
       <button type="button" class="sheet-card" data-sheet="${it.id}" style="--c:${it.cor}">
         ${K.kitThumb(it)}
         <span class="sheet-info"><span class="sheet-tag">${esc(it.tag)}</span><b>${esc(it.title)}</b><small>${esc(it.desc)}</small><span class="sheet-open">Visualizar folha →</span></span>
       </button>`;
+
     view.innerHTML = `
     <section class="kit-hero">
       <div class="kh-text">
         <div class="eyebrow light">Produto físico</div>
         <h1>Kit Contrato Fácil — a pasta</h1>
-        <p>A versão física do projeto: modelos impressos para preencher à mão, checklist em papel e glossário, tudo organizado em uma pasta com abas coloridas. Veja abaixo cada folha exatamente como ela vem no kit.</p>
+        <p>A versão física do projeto, montada do seu jeito: escolha de 1 a 10 modelos de contrato e quantas cópias impressas quer de cada um. O checklist, o glossário, o guia e o cartão de ativação vêm sempre junto.</p>
         <ul class="kh-specs">
           <li><b>32 × 24 × 6 cm</b><small>pasta com abas</small></li>
           <li><b>Papelão rígido</b><small>e papel reciclado</small></li>
-          <li><b>${items.length} itens</b><small>${modelos.length} modelos + ${apoio.length} de apoio</small></li>
+          <li><b data-resumo>${esc(K.kitSel.resumo())}</b><small>escolhidos por você</small></li>
         </ul>
         <div class="kh-buy"><div class="price"><b>${K.price(K.KIT.preco)}</b><span>pagamento único</span></div>
-          <button class="btn white" id="kitBuy">Quero o kit</button>
+          <button class="btn white" data-kit-buy>Quero o kit</button>
           <a class="btn outline-light" href="#/planos">Comparar com os planos</a></div>
       </div>
-      <div class="folder-art" aria-hidden="true">
-        <div class="fa-back"></div>
-        ${modelos.map((m, i) => `<div class="fa-sheet" style="--c:${m.cor};--i:${i}"><span>${esc(m.title)}</span></div>`).join('')}
-        <div class="fa-front"><img src="assets/img/logo.svg" alt="" width="60" height="60"><b>Kit Contrato Fácil</b><small>Modelo · Checklist · Explicação</small></div>
-      </div>
+      <div class="folder-art" aria-hidden="true" id="folderArt">${folderHTML()}</div>
     </section>
 
-    <section class="section">
-      <div class="head"><div class="eyebrow">O que vem dentro</div><h2>Modelos de contrato impressos</h2><p>Os mesmos 5 modelos do site, em versão para preencher à mão: espaços sublinhados para escrever e opções para marcar com X. Clique em um modelo para ver a folha inteira.</p></div>
-      <div class="sheet-grid">${modelos.map(card).join('')}</div>
-      <div class="head" style="margin-top:34px"><div class="eyebrow">Material de apoio</div><h2>Checklist, glossário e guia</h2><p>Folhas que ajudam a preencher, entender e conferir os contratos, mais o cartão que liga a pasta ao site.</p></div>
-      <div class="sheet-grid">${apoio.map(card).join('')}</div>
+    <section class="section" id="kitBuilder">
+      <div class="head"><div class="eyebrow">Monte sua pasta</div><h2>Escolha os modelos e as cópias</h2><p>Marque de 1 a 10 modelos e defina quantas cópias impressas de cada um vêm na pasta (até ${K.KIT_MAX_COPIAS} por modelo). Clique na miniatura para ver a folha inteira.</p></div>
+      <div class="pick-tools">
+        <button type="button" class="btn ghost sm" data-preset="todos">Escolher os 10 modelos</button>
+        <button type="button" class="btn ghost sm" data-preset="basicos">Só os 5 básicos</button>
+      </div>
+      <div class="pick-grid">${modelos.map(pickCard).join('')}</div>
+
+      <div class="kit-summary">
+        <div><b data-resumo>${esc(K.kitSel.resumo())}</b><small>+ checklist, glossário, guia e cartão de ativação</small></div>
+        <button class="btn primary" data-kit-buy>Quero o kit · ${K.price(K.KIT.preco)}</button>
+      </div>
+
+      <div class="head" style="margin-top:34px"><div class="eyebrow">Sempre incluso</div><h2>Material de apoio</h2><p>Folhas que ajudam a preencher, entender e conferir os contratos, mais o cartão que liga a pasta ao site.</p></div>
+      <div class="sheet-grid">${apoio.map(apoioCard).join('')}</div>
     </section>
 
     <section class="section alt">
@@ -1048,9 +1192,61 @@
         <article class="step-card"><div class="num">02</div><h3>Confira com o checklist</h3><p>Marque cada item da folha de conferência antes de assinar.</p></article>
         <article class="step-card"><div class="num">03</div><h3>Ative o Pro</h3><p>O cartão traz um código com 3 meses de Pro para gerar, editar e conferir tudo automaticamente no site.</p></article>
       </div>
-      <div class="notice"><b>Sobre a demonstração:</b> a proposta original prevê até 50 modelos na pasta. Aqui mostramos os 5 modelos-base e os materiais de apoio. O pedido e o código de ativação são simulados.</div>
+      <div class="notice"><b>Sobre a demonstração:</b> o pedido e o código de ativação são simulados. O preço do kit é fixo nesta versão, qualquer que seja a quantidade de modelos e cópias.</div>
     </section>`;
 
+    /* ----- Atualiza resumo, pasta ilustrada e cartões sem redesenhar a tela ----- */
+    const refresh = () => {
+      K.kitSel.set(sel);
+      view.querySelectorAll('[data-resumo]').forEach((el) => { el.textContent = K.kitSel.resumo(); });
+      $('#folderArt').innerHTML = folderHTML();
+      view.querySelectorAll('[data-card]').forEach((card) => {
+        const n = sel[card.dataset.card] || 0;
+        card.classList.toggle('on', !!n);
+        card.querySelector('[data-pick]').checked = !!n;
+        card.querySelector('.copies').hidden = !n;
+        const inp = card.querySelector('[data-copies]');
+        if (n && document.activeElement !== inp) inp.value = n;
+      });
+    };
+    const clamp = (n) => Math.max(1, Math.min(K.KIT_MAX_COPIAS, n || 1));
+    const builder = $('#kitBuilder');
+    builder.addEventListener('change', (e) => {
+      const pk = e.target.closest('[data-pick]');
+      if (pk) {
+        const t = pk.dataset.pick;
+        if (pk.checked) sel[t] = sel[t] || 1;
+        else if (Object.keys(sel).length === 1) { pk.checked = true; K.toast('A pasta precisa ter pelo menos 1 modelo.', 'warn'); return; }
+        else delete sel[t];
+        refresh();
+      }
+      const cp = e.target.closest('[data-copies]');
+      if (cp) { sel[cp.dataset.copies] = clamp(parseInt(cp.value, 10)); cp.value = sel[cp.dataset.copies]; refresh(); }
+    });
+    builder.addEventListener('input', (e) => {
+      const cp = e.target.closest('[data-copies]');
+      if (cp && parseInt(cp.value, 10) > 0) { sel[cp.dataset.copies] = clamp(parseInt(cp.value, 10)); refresh(); }
+    });
+    builder.addEventListener('click', (e) => {
+      const st = e.target.closest('[data-step]');
+      if (st) {
+        const t = st.dataset.tipo;
+        const novo = clamp((sel[t] || 1) + Number(st.dataset.step));
+        if (novo === K.KIT_MAX_COPIAS && Number(st.dataset.step) > 0 && sel[t] === K.KIT_MAX_COPIAS) K.toast(`Máximo de ${K.KIT_MAX_COPIAS} cópias por modelo.`, 'warn');
+        sel[t] = novo;
+        refresh();
+        return;
+      }
+      const pr = e.target.closest('[data-preset]');
+      if (pr) {
+        const lista = pr.dataset.preset === 'todos' ? Object.keys(K.TYPES) : basicos;
+        sel = Object.fromEntries(lista.map((k) => [k, sel[k] || 1]));
+        refresh();
+        K.toast(pr.dataset.preset === 'todos' ? 'Os 10 modelos foram incluídos na pasta.' : 'Pasta com os 5 modelos básicos.');
+      }
+    });
+
+    /* ----- Visualizador das folhas ----- */
     const open = (idx) => {
       const it = items[idx];
       K.modal({
@@ -1076,32 +1272,24 @@
       history.replaceState(null, '', '#/kit/' + it.id);
     };
     view.querySelectorAll('[data-sheet]').forEach((b) => b.addEventListener('click', () => open(items.findIndex((x) => x.id === b.dataset.sheet))));
-    $('#kitBuy').addEventListener('click', K.kitCheckout);
+    view.querySelectorAll('[data-kit-buy]').forEach((b) => b.addEventListener('click', K.kitCheckout));
     const startAt = items.findIndex((x) => x.id === abrir);
     if (startAt >= 0) setTimeout(() => open(startAt), 50);
   }
 
   /* =====================================================================
-   * Tela: Planos (Grátis e Pro, com promoção no plano anual)
+   * Planos: cartões e assinatura (usados na tela de Planos e na página inicial)
    * ===================================================================== */
-  function viewPlanos() {
+  function plansCardsHTML() {
     const P = K.PLANS;
     const pro = P.pro;
     const mensalAnual = pro.anual / 12;
     const economia = pro.mensal * 12 - pro.anual;
-    const render = () => {
-      const cur = K.plan.get();
-      const isPro = cur.id === 'pro';
-      const row = (label, vals) => `<tr><th scope="row">${label}</th>${vals.map((v) => `<td>${v === true ? '<span class="yes">✓</span>' : v === false ? '<span class="no">—</span>' : v}</td>`).join('')}</tr>`;
-      const itens = (p) => `<ul class="check-list">${p.itens.map((i) => `<li>${esc(i).replace(/\(em breve\)/, '<span class="soon">em breve</span>')}</li>`).join('')}</ul>`;
-      const atual = isPro ? (cur.trial ? 'teste grátis' : cur.ciclo === 'anual' ? 'anual' : 'mensal') : '';
-      view.innerHTML = `
-      <section class="page-head center-head"><div>
-        <div class="eyebrow">Planos</div>
-        <h1>Comece grátis. Evolua quando precisar.</h1>
-        <p>Use o essencial sem pagar nada. Quando os contratos virarem rotina, o Pro libera tudo. Você pode cancelar quando quiser.</p>
-      </div></section>
-      <section class="section tight">
+    const cur = K.plan.get();
+    const isPro = cur.id === 'pro';
+    const itens = (p) => `<ul class="check-list">${p.itens.map((i) => `<li>${esc(i).replace(/\(em breve\)/, '<span class="soon">em breve</span>')}</li>`).join('')}</ul>`;
+    const atual = isPro ? (cur.ciclo === 'anual' ? 'anual' : cur.ciclo === 'kit' ? 'kit' : 'mensal') : '';
+    return `
         <div class="plans two-plans">
           <article class="plan ${!isPro ? 'current' : ''}">
             <h3>${esc(P.gratis.nome)}</h3>
@@ -1120,13 +1308,61 @@
               <div class="promo-tag">🎉 Promoção do plano anual</div>
               <div class="promo-price"><b>${K.price(pro.anual)}</b><span>/ano</span></div>
               <small>Sai por ${K.price(mensalAnual)}/mês · você economiza ${K.price(economia)} (2 meses grátis)</small>
-              ${isPro && cur.ciclo === 'anual' && !cur.trial ? '<button class="btn primary full" disabled>✓ Você já tem o plano anual</button>' : '<button class="btn primary full" data-plan="pro" data-ciclo="anual">Aproveitar a promoção anual</button>'}
+              ${isPro && cur.ciclo === 'anual' ? '<button class="btn primary full" disabled>✓ Você já tem o plano anual</button>' : '<button class="btn primary full" data-plan="pro" data-ciclo="anual">Aproveitar a promoção anual</button>'}
             </div>
             ${isPro && atual === 'mensal' ? '<button class="btn ghost full" disabled>✓ Seu plano atual (mensal)</button>' : isPro && atual === 'anual' ? '' : `<button class="btn ghost full" data-plan="pro" data-ciclo="mensal">Assinar mensal por ${K.price(pro.mensal)}</button>`}
-            ${!isPro ? '<button class="link center-link" data-trial>ou teste grátis por 14 dias</button>' : cur.trial ? '<p class="muted sm center">✓ Você está no teste grátis do Pro.</p>' : ''}
+            ${atual === 'kit' ? '<p class="muted sm center">✓ Pro ativado pelo código do kit físico.</p>' : ''}
             ${itens(pro)}
           </article>
-        </div>
+        </div>`;
+  }
+
+  async function planAction(plan, cicloEscolhido, done) {
+    const pro = K.PLANS.pro;
+    const mensalAnual = pro.anual / 12;
+    const economia = pro.mensal * 12 - pro.anual;
+    if (plan === 'gratis') {
+      if (await K.confirm('Voltar para o plano Grátis', 'Os limites do Grátis voltarão a valer: 3 contratos por mês, 3 perguntas ao assistente por dia, checklist só manual e marca d’água na exportação. Seus documentos continuam salvos.', 'Voltar para o Grátis')) {
+        K.plan.set('gratis'); K.toast('Plano alterado para Grátis.'); if (done) done();
+      }
+      return;
+    }
+    const ciclo = cicloEscolhido === 'anual' ? 'anual' : 'mensal';
+    const anual = ciclo === 'anual';
+    const pm = K.modal({
+      title: anual ? 'Assinar o Pro anual (promoção)' : 'Assinar o Pro mensal',
+      html: `<div class="checkout"><div><b>Plano Pro ${anual ? 'anual' : 'mensal'}</b><small>${anual ? `Equivale a ${K.price(mensalAnual)}/mês · economia de ${K.price(economia)}` : 'Cobrança todo mês, cancele quando quiser'}</small></div><b>${anual ? K.price(pro.anual) + '/ano' : K.price(pro.mensal) + '/mês'}</b></div>
+        ${anual ? '' : `<p class="promo-hint">💡 No anual você paga ${K.price(pro.anual)} e economiza ${K.price(economia)}. <button type="button" class="link" data-switch-annual>Trocar para o anual</button></p>`}
+        <ul class="check-list">${pro.itens.slice(0, 4).map((i) => `<li>${esc(i)}</li>`).join('')}</ul>
+        <p class="notice">Demonstração: nenhum dado de pagamento é solicitado nem cobrado. Ao confirmar, o plano é ativado apenas neste navegador.</p>`,
+      actions: [{ label: 'Cancelar', value: false }, { label: 'Confirmar assinatura (demo)', cls: 'primary', value: true }],
+    });
+    $('#modalRoot .modal').addEventListener('click', (e) => {
+      if (!e.target.closest('[data-switch-annual]')) return;
+      K.closeModal(null);
+      setTimeout(() => planAction('pro', 'anual', done), 0);
+    });
+    if ((await pm) === true) { K.subscribePro(ciclo); if (done) done(); }
+  }
+
+  /* =====================================================================
+   * Tela: Planos (Grátis e Pro, com promoção no plano anual)
+   * ===================================================================== */
+  function viewPlanos() {
+    const P = K.PLANS;
+    const pro = P.pro;
+    const mensalAnual = pro.anual / 12;
+    const economia = pro.mensal * 12 - pro.anual;
+    const render = () => {
+      const row = (label, vals) => `<tr><th scope="row">${label}</th>${vals.map((v) => `<td>${v === true ? '<span class="yes">✓</span>' : v === false ? '<span class="no">—</span>' : v}</td>`).join('')}</tr>`;
+      view.innerHTML = `
+      <section class="page-head center-head"><div>
+        <div class="eyebrow">Planos</div>
+        <h1>Comece grátis. Evolua quando precisar.</h1>
+        <p>Use o essencial sem pagar nada. Quando os contratos virarem rotina, o Pro libera tudo. Você pode cancelar quando quiser.</p>
+      </div></section>
+      <section class="section tight">
+        ${plansCardsHTML()}
 
         <div class="kit-card panel">
           <div class="kit-img"><img src="assets/img/logo.svg" alt="" width="88" height="88"></div>
@@ -1151,10 +1387,11 @@
           <tbody>
             ${row('Preço', ['R$ 0', `${K.price(pro.mensal)}/mês ou ${K.price(pro.anual)}/ano`])}
             ${row('Contratos por mês', ['3', 'Ilimitados'])}
-            ${row('Tipos de contrato', ['5', '5 + novos modelos'])}
+            ${row('Tipos de contrato', ['5', '10 (5 exclusivos)'])}
             ${row('Editor de cláusulas e versões', [true, true])}
             ${row('Checklist manual de conferência', [true, true])}
             ${row('Checklist automático (lê o contrato)', [false, true])}
+            ${row('Revisor: arrumar erros com um clique', [false, true])}
             ${row('Glossário no texto', [true, true])}
             ${row('Assistente jurídico', ['3 perguntas/dia', 'Ilimitado'])}
             ${row('Exportar PDF e Word', ['Com marca d’água', 'Sem marca d’água'])}
@@ -1166,7 +1403,7 @@
           ['Qual a diferença entre o mensal e o anual?', `Os recursos são os mesmos. No anual você paga ${K.price(pro.anual)} de uma vez e economiza ${K.price(economia)}, o equivalente a 2 meses grátis.`],
           ['Posso cancelar quando quiser?', 'Sim. O plano continua ativo até o fim do período pago e depois volta para o Grátis. Seus documentos não são apagados.'],
           ['O contrato gerado tem validade jurídica?', 'O Kit organiza e confere as informações, mas não substitui um advogado. Um contrato assinado pelas partes e por duas testemunhas costuma ter validade; para casos complexos ou de valor alto, procure um profissional.'],
-          ['O que acontece quando acaba o limite do Grátis?', 'Você continua editando e exportando os contratos que já criou. Para gerar novos no mesmo mês, pode testar o Pro ou esperar o mês seguinte.'],
+          ['O que acontece quando acaba o limite do Grátis?', 'Você continua editando e exportando os contratos que já criou. Para gerar novos no mesmo mês, assine o Pro ou espere o mês seguinte.'],
           ['O assistente jurídico substitui um advogado?', 'Não. Ele explica termos, aponta pendências no texto e sugere cláusulas dos modelos do kit. Para orientação jurídica, consulte um advogado.'],
           ['O kit físico dá acesso ao site?', 'Sim: cada pasta vem com um código que ativa 3 meses do plano Pro.'],
         ].map(([q, a]) => `<div class="term"><button type="button" aria-expanded="false">${esc(q)}<span aria-hidden="true">＋</span></button><div class="definition"><p>${esc(a)}</p></div></div>`).join('')}</div>
@@ -1187,37 +1424,10 @@
     async function onClick(e) {
       const t = e.target.closest('.term button');
       if (t) { const open = t.parentElement.classList.toggle('open'); t.setAttribute('aria-expanded', open); t.querySelector('span').textContent = open ? '−' : '＋'; return; }
-      if (e.target.closest('[data-trial]')) { K.plan.set('pro', { trial: true }); K.toast('Teste do Pro ativado por 14 dias (demonstração).'); render(); return; }
       if (e.target.closest('#buyKit')) { K.kitCheckout(); return; }
       const b = e.target.closest('[data-plan]');
-      if (!b) return;
-      if (b.dataset.plan === 'gratis') {
-        if (await K.confirm('Voltar para o plano Grátis', 'Os limites do Grátis voltarão a valer: 3 contratos por mês, 3 perguntas ao assistente por dia e marca d’água na exportação. Seus documentos continuam salvos.', 'Voltar para o Grátis')) {
-          K.plan.set('gratis'); K.toast('Plano alterado para Grátis.'); render();
-        }
-        return;
-      }
-      const ciclo = b.dataset.ciclo === 'anual' ? 'anual' : 'mensal';
-      const anual = ciclo === 'anual';
-      const ok = await K.modal({
-        title: anual ? 'Assinar o Pro anual (promoção)' : 'Assinar o Pro mensal',
-        html: `<div class="checkout"><div><b>Plano Pro ${anual ? 'anual' : 'mensal'}</b><small>${anual ? `Equivale a ${K.price(mensalAnual)}/mês · economia de ${K.price(economia)}` : 'Cobrança todo mês, cancele quando quiser'}</small></div><b>${anual ? K.price(pro.anual) + '/ano' : K.price(pro.mensal) + '/mês'}</b></div>
-          ${anual ? '' : `<p class="promo-hint">💡 No anual você paga ${K.price(pro.anual)} e economiza ${K.price(economia)}. <button type="button" class="link" data-switch-annual>Trocar para o anual</button></p>`}
-          <ul class="check-list">${pro.itens.slice(0, 4).map((i) => `<li>${esc(i)}</li>`).join('')}</ul>
-          <p class="notice">Demonstração: nenhum dado de pagamento é solicitado nem cobrado. Ao confirmar, o plano é ativado apenas neste navegador.</p>`,
-        actions: [{ label: 'Cancelar', value: false }, { label: 'Confirmar assinatura (demo)', cls: 'primary', value: true }],
-      });
-      if (ok === true) { K.plan.set('pro', { ciclo }); K.toast(`Plano Pro ${ciclo} ativado (demonstração).`); render(); }
+      if (b) planAction(b.dataset.plan, b.dataset.ciclo, render);
     }
-    // Atalho dentro do modal do mensal: trocar para a promoção anual.
-    const onSwitch = (e) => {
-      if (!e.target.closest('[data-switch-annual]')) return;
-      K.closeModal(null);
-      setTimeout(() => { const a = view.querySelector('[data-ciclo="anual"]'); if (a) a.click(); }, 0);
-    };
-    document.getElementById('modalRoot').addEventListener('click', onSwitch);
-    const prevCleanup = cleanup;
-    cleanup = () => { prevCleanup(); document.getElementById('modalRoot').removeEventListener('click', onSwitch); };
   }
 
   /* =====================================================================
@@ -1232,6 +1442,7 @@
           <li>Os 6 contratos de exemplo voltam ao original</li>
           <li>Rascunho do formulário e conversa do assistente são limpos</li>
           <li>As perguntas grátis do assistente voltam a ${K.PLANS.gratis.ai} e o limite de contratos do mês é zerado</li>
+          <li>A pasta do kit físico volta para os 5 modelos básicos e você sai da conta</li>
         </ul>
         ${meus ? `<p class="notice warn sm"><b>Atenção:</b> ${meus} contrato(s) criado(s) neste navegador serão apagados. Se quiser guardá-los, use antes “Exportar backup” em Meus documentos.</p>` : ''}
         <p><b>Em qual plano a demonstração deve começar?</b><br><span class="muted sm">No Grátis o checklist é manual; no Pro a análise automática já aparece.</span></p>`,
@@ -1246,8 +1457,10 @@
     K.store.persist();
     K.prefs.del('draft');
     K.prefs.del('aiq');
+    K.prefs.del('kitSel');
     Object.assign(docFilter, { q: '', tipo: '', status: '', sort: 'recent' });
     if (K.assistant && K.assistant.reset) K.assistant.reset();
+    if (K.auth.current()) K.auth.logout();
     K.plan.set(escolha);
     if (location.hash === '#/inicio') router(); else location.hash = '#/inicio';
     K.toast(`Pronto para apresentar! Começando no plano ${K.PLANS[escolha].nome}.`);
@@ -1262,6 +1475,7 @@
     $('#menuToggle').setAttribute('aria-expanded', open);
   });
   K.plan.renderChip();
+  K.auth.renderHeader();
   window.addEventListener('hashchange', router);
   window.addEventListener('beforeunload', () => { if (cleanup) cleanup(); });
   router();

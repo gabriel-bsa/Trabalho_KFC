@@ -83,6 +83,11 @@
     ['naoexclusividade', /exclusiv/],
   ];
   const TYPE_HINTS = [
+    ['nda', /confidencial|sigilo|\bnda\b|segredo/],
+    ['distrato', /distrato|encerrar (um |o )?contrato|cancelar (um |o )?contrato|terminar (um |o )?contrato/],
+    ['mutuo', /emprest\w* (de )?dinheiro|mutuo|juros|emprestimo (entre|para) empresa/],
+    ['comodato', /comodato|emprest\w* (um |uma |o |a |meu |minha )?(equipamento|maquina|carro|veiculo|bem|espaco)/],
+    ['representacao', /represent|vendedor externo|comissao/],
     ['locacao', /alug|locar|locacao|imovel|sala comercial|\bloja\b|galpao|inquilino/],
     ['trabalho', /funcionari|empregad|contratar (alguem|uma pessoa|um atendente)|clt|carteira|salario|registrar/],
     ['compra', /vend|compr|equipamento|veiculo|carro|maquina|mercadoria|forno/],
@@ -139,7 +144,7 @@
   const proOnly = () => ({
     text: 'A **análise automática do contrato** é um recurso do plano **Pro**: eu leio o texto e aponto CPF/CNPJ inválidos, valores que não batem com o extenso, datas erradas e campos em branco.\n\nNo Grátis, você confere marcando o checklist ao lado, item por item. Posso continuar explicando termos e sugerindo cláusulas normalmente.',
     actions: [
-      { label: 'Testar o Pro grátis', run: () => { K.plan.set('pro', { trial: true }); say({ text: 'Pronto! O teste do **Pro** está ativo. Agora é só perguntar “O que falta neste contrato?”.' }); } },
+      { label: 'Assinar o Pro', run: () => { K.subscribePro(); say({ text: 'Pronto! O plano **Pro** está ativo (demonstração). Agora é só perguntar “O que falta neste contrato?”.' }); } },
       { label: 'Ver planos', run: () => { location.hash = '#/planos'; } },
     ],
   });
@@ -448,9 +453,9 @@
     $('#aiChips').innerHTML = '';
     if (K.plan.aiLeft() <= 0) {
       return say({
-        text: `Você usou as ${K.PLANS.gratis.ai} perguntas grátis de hoje. 🙂\n\nNo plano **Pro** o assistente é ilimitado, e você pode testar grátis por 14 dias.`,
+        text: `Você usou as ${K.PLANS.gratis.ai} perguntas grátis de hoje. 🙂\n\nNo plano **Pro** o assistente é ilimitado, por ${K.price(K.PLANS.pro.mensal)}/mês.`,
         actions: [
-          { label: 'Testar o Pro grátis', run: () => { K.plan.set('pro', { trial: true }); say({ text: 'Pronto! O teste do **Pro** está ativo (demonstração). Pode perguntar à vontade.' }); } },
+          { label: 'Assinar o Pro', run: () => { K.subscribePro(); say({ text: 'Pronto! O plano **Pro** está ativo (demonstração). Pode perguntar à vontade.' }); } },
           { label: 'Ver planos', run: () => { location.hash = '#/planos'; } },
         ],
       });

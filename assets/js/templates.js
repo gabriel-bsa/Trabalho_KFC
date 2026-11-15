@@ -66,6 +66,63 @@
         { k: 'resp2', label: 'Responsabilidades da segunda parceira', ph: 'Ex.: fornecer os produtos; organizar a programação.', textarea: true },
       ],
     },
+
+    /* ----- Tipos exclusivos do plano Pro ----- */
+    nda: {
+      pro: true, label: 'Confidencialidade (NDA)', icon: '🛡️', nome: 'Acordo de Confidencialidade',
+      titulo: 'ACORDO DE CONFIDENCIALIDADE (NDA)', p1: 'REVELADORA', p2: 'RECEPTORA',
+      p1Label: 'Reveladora (quem compartilha a informação)', p2Label: 'Receptora (quem recebe a informação)',
+      desc: 'Para proteger informações sigilosas compartilhadas em negociações ou projetos.',
+      objetoLabel: 'Assunto das informações confidenciais', objetoPh: 'Ex.: receitas, lista de fornecedores e planilha de custos da empresa.',
+      valorLabel: 'Multa por violação (R$)', vigencia: true,
+      extras: [{ k: 'proposito', label: 'Por que as informações serão compartilhadas', ph: 'Ex.: avaliar uma possível parceria para venda em rede de cafeterias', textarea: true }],
+    },
+    comodato: {
+      pro: true, label: 'Comodato (empréstimo de bem)', icon: '🔑', nome: 'Contrato de Comodato',
+      titulo: 'CONTRATO DE COMODATO', p1: 'COMODANTE', p2: 'COMODATÁRIA',
+      p1Label: 'Comodante (dono do bem)', p2Label: 'Comodatária (quem recebe o bem emprestado)',
+      desc: 'Para emprestar gratuitamente um equipamento, veículo ou espaço por um prazo.',
+      objetoLabel: 'Descrição do bem emprestado', objetoPh: 'Ex.: 1 (uma) máquina de café espresso, marca X, modelo Y, nº de série 0000.',
+      valorLabel: 'Valor de referência do bem (R$)', vigencia: true,
+      extras: [
+        { k: 'usoBem', label: 'Uso permitido do bem', ph: 'Ex.: exclusivamente no atendimento aos clientes da loja' },
+        { k: 'localBem', label: 'Onde o bem ficará', ph: 'Endereço' },
+      ],
+    },
+    representacao: {
+      pro: true, label: 'Representação comercial', icon: '💼', nome: 'Contrato de Representação Comercial',
+      titulo: 'CONTRATO DE REPRESENTAÇÃO COMERCIAL', p1: 'REPRESENTADA', p2: 'REPRESENTANTE',
+      p1Label: 'Representada (empresa dos produtos)', p2Label: 'Representante (quem vende e recebe comissão)',
+      desc: 'Para um representante vender seus produtos em uma região, recebendo comissão.',
+      objetoLabel: 'Produtos ou serviços representados', objetoPh: 'Ex.: linha de pães congelados e salgados para revenda.',
+      valorLabel: 'Meta mensal de vendas (R$)', vencimento: true, vigencia: true,
+      extras: [
+        { k: 'territorio', label: 'Região de atuação', ph: 'Ex.: cidades de Campinas, Sumaré e Hortolândia/SP' },
+        { k: 'comissao', label: 'Comissão (%)', ph: 'Ex.: 8', type: 'number' },
+        { k: 'exclusividade', label: 'Exclusividade', options: ['sem exclusividade', 'com exclusividade na região'] },
+      ],
+    },
+    mutuo: {
+      pro: true, label: 'Empréstimo entre empresas', icon: '💰', nome: 'Contrato de Mútuo',
+      titulo: 'CONTRATO DE MÚTUO (EMPRÉSTIMO)', p1: 'MUTUANTE', p2: 'MUTUÁRIA',
+      p1Label: 'Mutuante (quem empresta)', p2Label: 'Mutuária (quem recebe o empréstimo)',
+      desc: 'Para formalizar um empréstimo de dinheiro entre empresas ou sócios.',
+      objetoLabel: 'Finalidade do empréstimo', objetoPh: 'Ex.: compra de equipamentos para ampliação da cozinha.',
+      valorLabel: 'Valor emprestado (R$)', pagamento: true, pagamentoPadrao: 'parcelado',
+      extras: [{ k: 'juros', label: 'Juros (% ao mês)', ph: 'Ex.: 1', type: 'number' }],
+    },
+    distrato: {
+      pro: true, label: 'Distrato (encerramento)', icon: '📝', nome: 'Instrumento de Distrato',
+      titulo: 'INSTRUMENTO PARTICULAR DE DISTRATO', p1: 'PRIMEIRA DISTRATANTE', p2: 'SEGUNDA DISTRATANTE',
+      p1Label: 'Primeira parte', p2Label: 'Segunda parte',
+      desc: 'Para encerrar de comum acordo um contrato que já existe, com acerto final.',
+      objetoLabel: 'Contrato que está sendo encerrado', objetoPh: 'Ex.: Contrato de Prestação de Serviços de manutenção, assinado em 10/01/2026.',
+      valorLabel: 'Valor do acerto final (R$)', pagamento: true,
+      extras: [
+        { k: 'devolucoes', label: 'Bens ou documentos a devolver', ph: 'Ex.: chaves, crachás e equipamentos emprestados', textarea: true },
+        { k: 'pendencias', label: 'Pendências a resolver', ph: 'Ex.: entrega do último relatório mensal', textarea: true },
+      ],
+    },
   };
 
   const ATRASO = 'O atraso no pagamento sujeitará a parte devedora à multa de 2% (dois por cento) sobre o valor devido, acrescida de juros de mora de 1% (um por cento) ao mês e correção monetária.';
@@ -185,6 +242,55 @@
         add('confidencialidade', 'Da confidencialidade', K.CLAUSE_LIB[0].body);
         rescisao(); break;
 
+      case 'nda':
+        add('objeto', 'Do objeto', `O presente acordo tem por objeto proteger as informações confidenciais relativas a ${objeto}, compartilhadas pela REVELADORA com a RECEPTORA com a finalidade de ${clean(P(x.proposito, 'por que as informações serão compartilhadas'))}.`);
+        add('definicao', 'Das informações confidenciais', 'Consideram-se confidenciais todas as informações técnicas, comerciais, financeiras e estratégicas transmitidas por escrito, verbalmente ou por meio eletrônico, incluindo dados de clientes, fornecedores, preços, receitas e processos.\n\nNão são confidenciais as informações que já eram públicas, que a RECEPTORA comprovadamente já conhecia ou que precisem ser reveladas por ordem judicial.');
+        add('obrigacoes', 'Das obrigações da receptora', 'São obrigações da RECEPTORA:\na) usar as informações exclusivamente para a finalidade prevista neste acordo;\nb) não copiar, divulgar ou repassar as informações a terceiros sem autorização por escrito;\nc) limitar o acesso às pessoas que precisem conhecê-las, informando-as do dever de sigilo;\nd) devolver ou destruir todo o material recebido quando solicitado ou ao fim das tratativas.');
+        add('prazo', 'Do prazo do sigilo', `As obrigações de sigilo vigorarão pelo prazo de ${vig}, a contar de ${inicio}, e permanecerão válidas mesmo que as partes não concluam o negócio.`);
+        add('pagamento', 'Da multa por violação', `Em caso de violação do sigilo, a RECEPTORA pagará à REVELADORA multa de ${valor}, sem prejuízo da indenização por perdas e danos que forem comprovados.`);
+        add('rescisao', 'Do encerramento', `Este acordo poderá ser encerrado por qualquer das partes, mediante comunicação por escrito. O encerramento não extingue o dever de sigilo sobre as informações já recebidas, sujeitando a parte infratora à multa prevista neste acordo.`);
+        break;
+
+      case 'comodato':
+        add('objeto', 'Do objeto', `A COMODANTE empresta gratuitamente à COMODATÁRIA, que recebe em perfeito estado de conservação e funcionamento, o seguinte bem: ${objeto}.\n\nO bem ficará em ${clean(P(x.localBem, 'onde o bem ficará'))} e será usado ${clean(P(x.usoBem, 'uso permitido do bem'))}.`);
+        add('prazo', 'Do prazo e da devolução', `O empréstimo vigorará pelo prazo de ${vig}, com início em ${inicio} e término em ${fim}, data em que a COMODATÁRIA deverá devolver o bem no mesmo estado em que o recebeu, ressalvado o desgaste natural pelo uso.`);
+        add('obrigacoes', 'Das obrigações das partes', 'São obrigações da COMODATÁRIA:\na) usar o bem apenas para o fim combinado e com o devido cuidado;\nb) arcar com as despesas comuns de uso e conservação;\nc) não emprestar, alugar ou ceder o bem a terceiros;\nd) comunicar imediatamente qualquer defeito, perda ou dano.\n\nSão obrigações da COMODANTE:\na) entregar o bem em condições de uso;\nb) informar as instruções de uso e manutenção.');
+        add('pagamento', 'Do valor de referência e da indenização', `O comodato é gratuito. Para fins de indenização em caso de perda, furto ou dano por mau uso, as partes atribuem ao bem o valor de referência de ${valor}.`);
+        rescisao(); break;
+
+      case 'representacao': {
+        const pc = parseFloat(String(x.comissao || '').replace(',', '.'));
+        const comissao = pc > 0 ? (Number.isInteger(pc) ? `${pc}% (${K.extenso(pc)} por cento)` : `${String(pc).replace('.', ',')}%`) : '[PREENCHER: percentual de comissão]';
+        add('objeto', 'Do objeto', `A REPRESENTADA nomeia a REPRESENTANTE para promover e intermediar a venda dos seguintes produtos ou serviços: ${objeto}, na região de ${clean(P(x.territorio, 'região de atuação'))}, ${x.exclusividade || 'sem exclusividade'}, nos termos da Lei nº 4.886/1965.`);
+        add('pagamento', 'Da comissão e da meta', `A REPRESENTANTE receberá comissão de ${comissao} sobre o valor líquido das vendas efetivamente pagas pelos clientes, até o dia ${venc} do mês seguinte${meio}.\n\nA meta mensal de vendas é de ${valor}, usada como referência de desempenho, sem desconto da comissão caso não seja atingida.`);
+        add('prazo', 'Do prazo', `Este contrato vigorará pelo prazo de ${vig}, com início em ${inicio} e término em ${fim}, podendo ser renovado mediante termo aditivo.`);
+        add('obrigacoes', 'Das obrigações das partes', 'São obrigações da REPRESENTANTE:\na) divulgar os produtos com zelo e seguir as tabelas de preço e condições da REPRESENTADA;\nb) enviar mensalmente relatório das vendas e visitas realizadas;\nc) não representar produtos concorrentes sem autorização por escrito.\n\nSão obrigações da REPRESENTADA:\na) fornecer catálogos, amostras e tabelas atualizadas;\nb) informar as vendas aprovadas e recusadas;\nc) pagar as comissões nas datas ajustadas.');
+        add('rescisao', 'Da rescisão', `Este contrato poderá ser rescindido por qualquer das partes, mediante aviso prévio por escrito de 30 (trinta) dias.\n\nParágrafo único. Na rescisão sem justo motivo pela REPRESENTADA, será devida à REPRESENTANTE a indenização prevista na Lei nº 4.886/1965. O descumprimento de qualquer cláusula sujeita a parte infratora à multa de ${multa} sobre a média anual das comissões.`);
+        break;
+      }
+
+      case 'mutuo': {
+        const jj = parseFloat(String(x.juros || '').replace(',', '.'));
+        const juros = jj > 0
+          ? `Sobre o saldo devedor incidirão juros de ${String(jj).replace('.', ',')}% (${Number.isInteger(jj) ? K.extenso(jj) : String(jj).replace('.', ',')} por cento) ao mês, pagos junto com cada parcela.`
+          : jj === 0 && x.juros !== undefined && String(x.juros).trim() !== '' ? 'Não haverá cobrança de juros.' : 'Sobre o saldo devedor incidirão juros de [PREENCHER: percentual de juros] ao mês, pagos junto com cada parcela.';
+        add('objeto', 'Do objeto', `A MUTUANTE empresta à MUTUÁRIA a quantia de ${valor}, destinada a ${objeto}.`);
+        add('prazo', 'Da entrega do valor', `O valor será entregue à MUTUÁRIA em ${inicio}${meio}, servindo o comprovante de transferência como recibo.`);
+        add('pagamento', 'Da devolução e dos juros', `A MUTUÁRIA devolverá o valor emprestado ${pagto()}. ${juros}\n\nParágrafo único. ${ATRASO}`);
+        add('obrigacoes', 'Das obrigações das partes', 'São obrigações da MUTUÁRIA:\na) usar o valor na finalidade informada;\nb) pagar as parcelas nas datas ajustadas;\nc) comunicar qualquer dificuldade de pagamento antes do vencimento.\n\nSão obrigações da MUTUANTE:\na) entregar o valor na data combinada;\nb) fornecer recibo de cada pagamento recebido.');
+        add('rescisao', 'Do vencimento antecipado', `O atraso de 2 (duas) parcelas consecutivas ou o descumprimento de qualquer cláusula provoca o vencimento antecipado da dívida, que poderá ser cobrada integralmente, acrescida de multa de ${multa} sobre o saldo devedor.`);
+        break;
+      }
+
+      case 'distrato':
+        add('objeto', 'Do objeto', `As partes resolvem, de comum acordo, encerrar (distratar) o seguinte contrato: ${objeto}, com efeitos a partir de ${inicio}.`);
+        add('pagamento', 'Do acerto final', `A título de acerto final, a PRIMEIRA DISTRATANTE pagará à SEGUNDA DISTRATANTE o valor de ${valor}, ${pagto()}.`);
+        add('prazo', 'Das devoluções e prazos', `No prazo de 10 (dez) dias, contados de ${inicio}, as partes devolverão uma à outra: ${clean(P(x.devolucoes, 'bens ou documentos a devolver'))}.`);
+        add('obrigacoes', 'Das pendências', `Até a quitação, as partes se comprometem a resolver as seguintes pendências: ${clean(P(x.pendencias, 'pendências a resolver'))}.`);
+        add('quitacao', 'Da quitação', 'Cumpridas as obrigações deste distrato, as partes dão-se plena, geral e irrevogável quitação, nada mais tendo a reclamar uma da outra em relação ao contrato encerrado.');
+        add('rescisao', 'Do descumprimento deste distrato', `O descumprimento de qualquer obrigação deste distrato sujeitará a parte infratora à multa de ${multa} sobre o valor do acerto final, sem prejuízo de perdas e danos.`);
+        break;
+
       default: // servicos
         add('objeto', 'Do objeto', `O presente contrato tem por objeto a prestação, pela CONTRATADA, dos seguintes serviços: ${objeto}.`);
         add('prazo', 'Do prazo de execução', `Os serviços terão início em ${inicio} e serão executados no prazo de ${clean(P(x.entrega, 'prazo de execução'))}.`);
@@ -270,6 +376,7 @@
       ['pela variação do IPCA', 'pela variação do (   ) IPCA   (   ) IGP-M   (   ) INPC'],
       ['A presente locação é contratada sem garantia locatícia.', 'Em garantia do cumprimento das obrigações deste contrato, a LOCATÁRIA oferece: (   ) caução de até 3 (três) aluguéis   (   ) fiador   (   ) seguro-fiança   (   ) sem garantia.'],
       ['sendo os primeiros 90 (noventa) dias considerados', 'sendo os primeiros [PREENCHER: nº de] dias (até 90) considerados'],
+      [', sem exclusividade, nos termos', ', (   ) sem exclusividade   (   ) com exclusividade na região, nos termos'],
     ];
     b.clauses.forEach((c) => swaps.forEach(([from, to]) => { c.body = c.body.split(from).join(to); }));
     return { heading: b.heading, clauses: b.clauses, tipo };

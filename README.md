@@ -25,12 +25,13 @@ Depois acesse http://localhost:8080.
 
 | Rota | Tela | O que faz |
 |---|---|---|
-| `#/inicio` | Início | Apresentação, atalhos por tipo de contrato, números e documentos recentes |
+| `#/inicio` | Início | Login opcional (simulado) e os planos logo abaixo, seguidos dos atalhos por tipo de contrato e dos documentos recentes |
 | `#/novo` | Novo contrato | Formulário guiado em 6 passos com prévia ao vivo, máscara e validação de CPF/CNPJ, valor por extenso e botão “Preencher com exemplo” |
 | `#/documentos` | Meus documentos | Lista dos contratos gerados: busca, filtros, duplicar, exportar, excluir, backup e restauração dos exemplos |
 | `#/editor/:id` | Editor | Edição livre de cada cláusula e título, reordenar, inserir modelos de cláusula, localizar e substituir, versões, modo leitura com glossário e **checklist no painel lateral** (análise automática + confirmação manual, relatório para impressão) |
 | `#/glossario` | Glossário | Termos contratuais com busca |
-| `#/planos` | Planos | Grátis e Pro (com promoção no anual), kit físico, comparação e perguntas frequentes |
+| `#/planos` | Planos | Grátis e Pro (com promoção no anual), kit físico, ativação do código do kit, comparação e perguntas frequentes |
+| `#/kit` | Kit físico | Monte a pasta: escolha de 1 a 10 modelos e as cópias de cada um, veja cada folha como sai impressa e faça o pedido (simulado) |
 
 Em todas as telas há o botão **💬 Assistente** (canto inferior direito).
 
@@ -49,6 +50,24 @@ O checklist fica no painel lateral do editor. **No plano Grátis ele é só manu
 9. Revisão final (só manual)
 
 Situação do documento: **Rascunho** (nada conferido), **Em revisão** e **Conferido** (todos os itens confirmados e nenhum problema).
+
+## Tipos de contrato
+
+- **Grátis (5):** prestação de serviços, compra e venda, locação, trabalho e parceria.
+- **Exclusivos do Pro (5):** confidencialidade (NDA), comodato, representação comercial, empréstimo entre empresas (mútuo) e distrato. No Grátis dá para preencher e ver a prévia; para gerar, é preciso assinar o Pro.
+
+## Revisor (Pro)
+
+Em cada aviso do checklist aparece um botão para resolver:
+
+- **🔧 Arrumar** (verde): o site corrige sozinho — valor por extenso divergente ou ausente, cláusula que falta (objeto, prazo, obrigações, pagamento, rescisão, foro), multa na rescisão, espaços de assinatura e testemunhas, cláusulas vazias.
+- **✏️ Corrigir** (branco): quando só a pessoa sabe o dado certo (CPF/CNPJ inválido, data inexistente, campo em branco), o editor leva até o trecho e deixa ele selecionado.
+
+Também há **Arrumar tudo automaticamente**. Antes de cada correção, uma versão é salva em *Versões*.
+
+## Login (simulado)
+
+A página inicial tem *Entrar* e *Criar conta*, mas o login é opcional (*Continuar sem login*). As contas ficam só no navegador e não há segurança real: é apenas demonstração. Conta pronta: usuário **demo**, senha **demo123**.
 
 ## Assistente jurídico (demonstração)
 
@@ -80,7 +99,7 @@ Toda alteração feita pelo assistente salva antes uma versão de segurança (bo
 
 Também: kit físico (pasta) por R$ 119 com 3 meses de Pro.
 
-Os limites do Grátis funcionam de verdade no site para mostrar o funil de venda: ao estourar, aparece a oferta de **testar o Pro por 14 dias** (um clique). Nenhum pagamento é processado; o plano escolhido fica salvo só no navegador. Os documentos de exemplo não contam no limite. Para voltar ao Grátis: *Planos → Voltar para o Grátis*.
+Os limites do Grátis funcionam de verdade no site para mostrar o funil de venda: ao estourar, aparece a oferta de **assinar o Pro** (um clique, simulado). Nenhum pagamento é processado; o plano escolhido fica salvo só no navegador. Os documentos de exemplo não contam no limite. Para voltar ao Grátis: *Planos → Voltar para o Grátis*.
 
 ## Logo
 
@@ -104,8 +123,11 @@ assets/js/utils.js       utilidades (formatação, CPF/CNPJ, extenso, armazename
 assets/js/glossary.js    termos do glossário e destaque no texto
 assets/js/templates.js   tipos de contrato, cláusulas e geração do documento
 assets/js/checklist.js   regras do checklist automático
+assets/js/fixes.js       revisor: correções do checklist (Pro)
 assets/js/mocks.js       documentos de exemplo
 assets/js/plans.js       planos e limites do Grátis
+assets/js/auth.js        login simulado
+assets/js/kit.js         kit físico: folhas impressas, escolha de modelos e pedido
 assets/js/app.js         rotas e telas
 assets/js/assistant.js   assistente jurídico (simulado)
 assets/img/logo.svg      logo

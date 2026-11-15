@@ -30,6 +30,12 @@
     { t: 'Período de experiência', m: 'período de experiência', d: 'Fase inicial do contrato de trabalho, de até 90 dias, para empregador e empregado avaliarem a adaptação.' },
     { t: 'LGPD', m: 'LGPD', d: 'Lei Geral de Proteção de Dados (Lei nº 13.709/2018), que define regras para coletar, usar e guardar dados pessoais.' },
     { t: 'Confidencialidade', m: 'confidencialidade|sigilo', d: 'Compromisso de não divulgar informações recebidas por causa do contrato.' },
+    { t: 'Comodato', m: 'comodato|comodante|comodatária', d: 'Empréstimo gratuito de um bem (equipamento, veículo, espaço) que deve ser devolvido no prazo combinado.', ex: 'Um café empresta sua máquina de espresso a uma livraria parceira.' },
+    { t: 'Mútuo', m: 'mútuo|mutuante|mutuária', d: 'Empréstimo de dinheiro ou de coisas que se consomem, com devolução de quantia igual, podendo haver juros.' },
+    { t: 'Distrato', m: 'distrato|distratar|distratante', d: 'Acordo em que as partes encerram, de comum acordo, um contrato que já existia.' },
+    { t: 'Quitação', m: 'quitação', d: 'Declaração de que uma obrigação foi totalmente cumprida e de que nada mais é devido.' },
+    { t: 'Comissão', m: 'comissão|comissões', d: 'Remuneração calculada como percentual sobre as vendas realizadas, comum na representação comercial.' },
+    { t: 'NDA', m: 'NDA', d: 'Sigla em inglês para acordo de confidencialidade (Non-Disclosure Agreement): compromisso de não divulgar informações sigilosas.' },
     { t: 'Minuta', m: 'minuta', d: 'Versão preliminar de um contrato, ainda em discussão e sujeita a alterações antes da assinatura.' },
   ];
 

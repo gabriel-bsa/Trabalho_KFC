@@ -118,4 +118,48 @@
     p1: { nome: 'Roberto Almeida Nunes', doc: cpf('402718593'), end: 'Rua Marechal Deodoro, 300, ap. 81, Centro, Curitiba/PR' },
     p2: { nome: 'Clínica Bem Estar Fisioterapia Ltda', doc: cnpj('563019270001'), end: 'Rua XV de Novembro, 455, sala 12, Centro, Curitiba/PR' },
   });
+
+  /* Exemplos dos 5 modelos exclusivos do Pro (dados fictícios). */
+  Object.assign(K.EXAMPLES, {
+    nda: {
+      tipo: 'nda',
+      p1: { nome: 'Padaria Grão Dourado Ltda', doc: cnpj('123456780001'), end: 'Rua das Acácias, 120, Centro, Campinas/SP' },
+      p2: { nome: 'Rede Café Expresso Ltda', doc: cnpj('487210390001'), end: 'Av. Paulista, 900, Bela Vista, São Paulo/SP' },
+      objeto: 'receitas de pães e bolos, lista de fornecedores, planilha de custos de produção e volumes de venda por produto',
+      valor: 20000, prazoMeses: '24', inicio: d(0), cidade: 'Campinas', uf: 'SP', multa: '10',
+      extras: { proposito: 'avaliar uma possível parceria para venda dos produtos da padaria nas lojas da rede' },
+    },
+    comodato: {
+      tipo: 'comodato',
+      p1: { nome: 'Café Aroma Ltda', doc: cnpj('781245900001'), end: 'Rua Augusta, 1200, Consolação, São Paulo/SP' },
+      p2: { nome: 'Livraria Página Nova Ltda', doc: cnpj('330129870001'), end: 'Rua Haddock Lobo, 340, Cerqueira César, São Paulo/SP' },
+      objeto: '1 (uma) máquina de café espresso profissional, marca Barista, modelo B-200, nº de série B200-7781, com 2 (dois) grupos e moedor acoplado',
+      valor: 12000, prazoMeses: '12', inicio: d(0), cidade: 'São Paulo', uf: 'SP', multa: '10',
+      extras: { usoBem: 'exclusivamente no espaço de leitura da livraria, para servir os clientes', localBem: 'Rua Haddock Lobo, 340, Cerqueira César, São Paulo/SP' },
+    },
+    representacao: {
+      tipo: 'representacao',
+      p1: { nome: 'Doces da Vó Lurdes Ltda', doc: cnpj('219834560001'), end: 'Rua Pium-í, 1450, Cruzeiro, Belo Horizonte/MG' },
+      p2: { nome: 'Carlos Henrique Duarte', doc: cpf('513874296'), end: 'Rua dos Timbiras, 2200, Lourdes, Belo Horizonte/MG' },
+      objeto: 'linha de doces artesanais, bolos de pote e tortas congeladas para revenda em cafeterias, padarias e mercados',
+      valor: 15000, vencimento: '10', meio: 'PIX', prazoMeses: '12', inicio: d(0), cidade: 'Belo Horizonte', uf: 'MG', multa: '10',
+      extras: { territorio: 'Belo Horizonte, Contagem e Betim/MG', comissao: '8', exclusividade: 'com exclusividade na região' },
+    },
+    mutuo: {
+      tipo: 'mutuo',
+      p1: { nome: 'Mercadinho Bom Preço Ltda', doc: cnpj('640287150001'), end: 'Av. Getúlio Vargas, 512, Centro, Ribeirão Preto/SP' },
+      p2: { nome: 'Cozinha Sabor & Arte ME', doc: cnpj('307915840001'), end: 'Rua Tiradentes, 88, Vila Nova, Belo Horizonte/MG' },
+      objeto: 'compra de um forno combinado e de uma câmara fria para ampliação da cozinha industrial',
+      valor: 30000, pagamento: 'parcelado', parcelas: '10', meio: 'transferência bancária', inicio: d(0), cidade: 'Ribeirão Preto', uf: 'SP', multa: '10',
+      extras: { juros: '1' },
+    },
+    distrato: {
+      tipo: 'distrato',
+      p1: { nome: 'Ateliê Linha Fina ME', doc: cnpj('905671230001'), end: 'Rua Sete de Setembro, 77, Centro, Florianópolis/SC' },
+      p2: { nome: 'Marcos Vinícius Prado', doc: cpf('381927465'), end: 'Av. Beira-Mar Norte, 2100, sala 304, Florianópolis/SC' },
+      objeto: 'Contrato de Prestação de Serviços de assessoria contábil mensal, assinado em 05/10/2026',
+      valor: 650, pagamento: 'avista', meio: 'boleto bancário', inicio: d(0), cidade: 'Florianópolis', uf: 'SC', multa: '10',
+      extras: { devolucoes: 'livros fiscais, senhas de acesso aos sistemas e documentos originais da empresa', pendencias: 'entrega do último balancete mensal e das guias de impostos do mês de encerramento' },
+    },
+  });
 })();

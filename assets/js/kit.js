@@ -1,5 +1,5 @@
 /* Kit Contrato Fácil — conteúdo do kit físico (a pasta)
- * Monta as folhas como seriam impressas: 5 modelos em branco + materiais de apoio.
+ * Monta as folhas como seriam impressas: até 10 modelos em branco (com cópias) + materiais de apoio.
  * Tudo é demonstração: o pedido e o código de ativação são simulados.
  */
 (function () {
@@ -7,7 +7,7 @@
   const K = window.KCF;
   const { esc } = K;
 
-  const CORES = { servicos: '#2459a5', compra: '#c27c0e', locacao: '#1f8a58', trabalho: '#8a3fb4', parceria: '#c2410c' };
+  const CORES = { servicos: '#2459a5', compra: '#c27c0e', locacao: '#1f8a58', trabalho: '#8a3fb4', parceria: '#c2410c', nda: '#0f766e', comodato: '#b45309', representacao: '#1d4ed8', mutuo: '#047857', distrato: '#be123c' };
   const CODIGO = 'KCF-7Q4M-2026';
 
   K.KIT_ITEMS = [
@@ -89,23 +89,51 @@
   K.kitThumb = (it) =>
     `<span class="sheet-thumb" aria-hidden="true"><span class="paper sheet ${it.kind === 'cartao' ? 'card-sheet' : ''}">${K.kitSheet(it)}</span></span>`;
 
-  /** Pedido simulado do kit: mostra os modelos e materiais que vêm na pasta antes de confirmar. */
+  /* ---------- Montagem da pasta: modelos escolhidos (1 a 10) e cópias de cada um ---------- */
+  const PADRAO = { servicos: 1, compra: 1, locacao: 1, trabalho: 1, parceria: 1 };
+  K.KIT_MAX_COPIAS = 50;
+  K.kitSel = {
+    get() {
+      const s = K.prefs.get('kitSel', null);
+      const ok = s && typeof s === 'object' ? Object.fromEntries(Object.entries(s).filter(([k, n]) => K.TYPES[k] && n > 0)) : null;
+      return ok && Object.keys(ok).length ? ok : { ...PADRAO };
+    },
+    set(sel) { K.prefs.set('kitSel', sel); },
+    modelos() { const s = this.get(); return K.KIT_ITEMS.filter((i) => i.kind === 'modelo' && s[i.tipo]); },
+    totalCopias() { return Object.values(this.get()).reduce((a, n) => a + n, 0); },
+    resumo() {
+      const m = this.modelos().length, c = this.totalCopias();
+      return `${m} ${m === 1 ? 'modelo' : 'modelos'} · ${c} ${c === 1 ? 'cópia impressa' : 'cópias impressas'}`;
+    },
+  };
+
+  /** Pedido simulado do kit: mostra os modelos escolhidos (com cópias) e o material de apoio antes de confirmar. */
   K.kitCheckout = () => {
+    const sel = K.kitSel.get();
+    const modelos = K.kitSel.modelos();
+    const apoio = K.KIT_ITEMS.filter((i) => i.kind !== 'modelo');
+    const item = (it, copias) => `
+      <button type="button" class="kp-item" data-kit-open="${it.id}" style="--c:${it.cor}">
+        ${K.kitThumb(it)}
+        <span class="kp-tag">${esc(it.tag)}</span><b>${esc(it.title)}</b>
+        ${copias ? `<span class="kp-copies">× ${copias} ${copias === 1 ? 'cópia' : 'cópias'}</span>` : '<span class="kp-copies">incluso</span>'}
+      </button>`;
     const p = K.modal({
       title: 'Quero o Kit Contrato Fácil',
       wide: true,
-      html: `<p class="muted">Estes são os materiais que vêm impressos na pasta. Clique em qualquer um para ver a folha inteira.</p>
-        <div class="kit-pick">${K.KIT_ITEMS.map((it) => `
-          <button type="button" class="kp-item" data-kit-open="${it.id}" style="--c:${it.cor}">
-            ${K.kitThumb(it)}
-            <span class="kp-tag">${esc(it.tag)}</span><b>${esc(it.title)}</b>
-          </button>`).join('')}
-        </div>
-        <div class="checkout"><div><b>Kit Contrato Fácil — a pasta</b><small>${K.KIT_ITEMS.filter((i) => i.kind === 'modelo').length} modelos + checklist + glossário + guia + cartão com 3 meses de Pro · pasta de 32 × 24 × 6 cm</small></div><b>${K.price(K.KIT.preco)}</b></div>
+      html: `<div class="kp-head"><p class="muted">Sua pasta: <b>${K.kitSel.resumo()}</b>, mais o material de apoio. Clique em uma folha para ver como ela vem impressa.</p>
+          <a class="btn ghost sm" href="#/kit" data-kit-edit>Alterar modelos e cópias</a></div>
+        <h4 class="kp-title">Modelos escolhidos</h4>
+        <div class="kit-pick">${modelos.map((it) => item(it, sel[it.tipo])).join('')}</div>
+        <h4 class="kp-title">Material de apoio (sempre incluso)</h4>
+        <div class="kit-pick">${apoio.map((it) => item(it, 0)).join('')}</div>
+        <div class="checkout"><div><b>Kit Contrato Fácil — a pasta</b><small>${K.kitSel.resumo()} + checklist + glossário + guia + cartão com 3 meses de Pro · pasta de 32 × 24 × 6 cm</small></div><b>${K.price(K.KIT.preco)}</b></div>
         <p class="notice sm">Demonstração: a loja ainda não está ativa e nenhum pagamento é processado. Na versão comercial, aqui entrariam endereço de entrega e frete.</p>`,
       actions: [{ label: 'Cancelar', value: false }, { label: `Confirmar pedido · ${K.price(K.KIT.preco)} (demo)`, cls: 'primary', value: true }],
     });
     K.$('#modalRoot .modal').addEventListener('click', (e) => {
+      const ed = e.target.closest('[data-kit-edit]');
+      if (ed) { K.closeModal(null); return; }
       const b = e.target.closest('[data-kit-open]');
       if (!b) return;
       K.closeModal(null);
@@ -113,7 +141,7 @@
       if (location.hash === target) window.dispatchEvent(new HashChangeEvent('hashchange'));
       else location.hash = target;
     });
-    return p.then((ok) => { if (ok === true) K.toast('Pedido simulado! Na entrega, use o cartão de ativação para liberar 3 meses de Pro.'); return ok; });
+    return p.then((ok) => { if (ok === true) K.toast(`Pedido simulado! Sua pasta: ${K.kitSel.resumo()}. Na entrega, use o cartão para liberar 3 meses de Pro.`); return ok; });
   };
 
   /** Ativação simulada do código do cartão. */
