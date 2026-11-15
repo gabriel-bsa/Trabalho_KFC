@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Kit Contrato Fácil — gerador de minutas de contrato, editor de cláusulas, checklist de conferência e glossário. Projeto acadêmico.">
+  <title>Kit Contrato Fácil</title>
+  <link rel="icon" type="image/svg+xml" href="assets/img/logo.svg">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <a class="skip" href="#view">Pular para o conteúdo</a>
+  <header class="topbar">
+    <a class="brand" href="#/inicio" aria-label="Kit Contrato Fácil — início"><img class="logo" src="assets/img/logo.svg" alt="" width="40" height="40"><span class="wordmark"><small>Kit</small><span>Contrato <em>Fácil</em></span></span></a>
+    <a class="plan-chip" id="planChip" href="#/planos">Plano Grátis</a>
+    <button class="menu-toggle" id="menuToggle" aria-label="Abrir menu" aria-expanded="false" aria-controls="mainNav">☰</button>
+    <nav id="mainNav" aria-label="Principal">
+      <a href="#/inicio" data-route="inicio">Início</a>
+      <a href="#/novo" data-route="novo">Novo contrato</a>
+      <a href="#/documentos" data-route="documentos">Meus documentos</a>
+      <a href="#/glossario" data-route="glossario">Glossário</a>
+      <a href="#/planos" data-route="planos">Planos</a>
+      <a href="#/kit" data-route="kit">Kit físico</a>
+    </nav>
+  </header>
+
+  <main id="view" tabindex="-1"></main>
+
+  <footer class="footer">
+    <div class="foot-brand"><img src="assets/img/logo.svg" alt="" width="36" height="36"><div><b>Kit Contrato Fácil</b><p>Modelo · Checklist · Explicação</p></div></div>
+    <div class="foot-team"><b>Equipe</b><ul><li>Amanda Lima da Mata</li><li>Beatriz Aparecida Moreira</li><li>Isadora Nagahara Kumagai</li><li>Natalie Camargo Alberto</li></ul></div>
+    <div><b>Projeto acadêmico — Desenvolvimento de Produto</b><p>Material educativo: as minutas não substituem a análise de um profissional habilitado. Os documentos de exemplo usam dados fictícios.</p><button type="button" class="foot-demo" id="demoMode">🎬 Modo apresentação</button></div>
+  </footer>
+
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+  <div id="modalRoot"></div>
+  <div id="printRoot"></div>
+
+  <script src="assets/js/utils.js"></script>
+  <script src="assets/js/glossary.js"></script>
+  <script src="assets/js/templates.js"></script>
+  <script src="assets/js/checklist.js"></script>
+  <script src="assets/js/mocks.js"></script>
+  <script src="assets/js/plans.js"></script>
+  <script src="assets/js/kit.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/assistant.js"></script>
+</body>
+</html>

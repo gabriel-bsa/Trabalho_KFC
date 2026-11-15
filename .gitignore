@@ -1,0 +1,13 @@
+# Documentos da disciplina (não fazem parte do site)
+*.docx
+*.pdf
+*.pptx
+
+# Versão antiga do site, substituída por index.html + assets/
+kit_contrato_facil_site.html
+
+# Configurações locais do editor
+.claude/
+
+# Arquivos do sistema
+.DS_Store
