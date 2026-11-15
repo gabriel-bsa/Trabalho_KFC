@@ -224,7 +224,7 @@
       </div>
       <div class="team">
         <div><div class="eyebrow">Equipe do projeto</div><p class="muted sm">Projeto acadêmico — Desenvolvimento de Produto</p></div>
-        <ul>${['Amanda Lima da Mata', 'Beatriz Aparecida Moreira', 'Isadora Nagahara Kumagai', 'Natalie Camargo Alberto'].map((n) => `<li><span class="avatar" aria-hidden="true">${n.split(' ').filter((w, i, a) => i === 0 || i === a.length - 1).map((w) => w[0]).join('')}</span>${esc(n)}</li>`).join('')}</ul>
+        <ul>${['Amanda Lima da Mata', 'Amanda Ribeiro Mazzetto', 'Beatriz Aparecida Moreira', 'Isadora Nagahara Kumagai', 'Natalie Camargo Alberto'].map((n) => `<li><span class="avatar" aria-hidden="true">${n.split(' ').filter((w, i, a) => i === 0 || i === a.length - 1).map((w) => w[0]).join('')}</span>${esc(n)}</li>`).join('')}</ul>
       </div>
       <div class="notice"><b>Sobre o projeto:</b> a proposta original prevê uma pasta física de aproximadamente 32 × 24 × 6 cm, feita principalmente de papelão rígido e papel reciclado. Este site é uma demonstração digital complementar. <a href="#/kit"><b>Ver o que vem no kit físico →</b></a></div>
     </section>`;
@@ -252,7 +252,7 @@
           <div class="head center"><div class="eyebrow">Planos</div><h2>Comece grátis. Evolua quando precisar.</h2><p>O Grátis já cria contratos com editor e checklist. O Pro libera os 10 tipos de contrato, a análise automática e o revisor.</p></div>
           ${plansCardsHTML()}
         </section>
-        <p class="gate-foot">Projeto acadêmico — Desenvolvimento de Produto · Amanda Lima da Mata, Beatriz Aparecida Moreira, Isadora Nagahara Kumagai e Natalie Camargo Alberto</p>
+        <p class="gate-foot">Projeto acadêmico — Desenvolvimento de Produto · Amanda Lima da Mata, Amanda Ribeiro Mazzetto, Beatriz Aparecida Moreira, Isadora Nagahara Kumagai e Natalie Camargo Alberto</p>
       </div>`;
       bindAuthCard($('#authCard'));
       $('#planos-gate').addEventListener('click', (e) => {

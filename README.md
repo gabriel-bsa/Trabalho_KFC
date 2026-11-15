@@ -4,7 +4,7 @@ Projeto acadêmico (Desenvolvimento de Produto): gerador de minutas de contrato 
 
 ## Equipe
 
-Amanda Lima da Mata · Beatriz Aparecida Moreira · Isadora Nagahara Kumagai · Natalie Camargo Alberto
+Amanda Lima da Mata · Amanda Ribeiro Mazzetto · Beatriz Aparecida Moreira · Isadora Nagahara Kumagai · Natalie Camargo Alberto
 
 ## Modo apresentação
 
