@@ -25,7 +25,8 @@ Depois acesse http://localhost:8080.
 
 | Rota | Tela | O que faz |
 |---|---|---|
-| `#/inicio` | Início | Login opcional (simulado) e os planos logo abaixo, seguidos dos atalhos por tipo de contrato e dos documentos recentes |
+| `#/entrar` | Entrada | Primeira tela, sem menu: login simulado, *Criar conta* ou *Continuar sem login*, com os planos logo abaixo |
+| `#/inicio` | Início | Apresentação, atalhos por tipo de contrato, documentos recentes e planos |
 | `#/novo` | Novo contrato | Formulário guiado em 6 passos com prévia ao vivo, máscara e validação de CPF/CNPJ, valor por extenso e botão “Preencher com exemplo” |
 | `#/documentos` | Meus documentos | Lista dos contratos gerados: busca, filtros, duplicar, exportar, excluir, backup e restauração dos exemplos |
 | `#/editor/:id` | Editor | Edição livre de cada cláusula e título, reordenar, inserir modelos de cláusula, localizar e substituir, versões, modo leitura com glossário e **checklist no painel lateral** (análise automática + confirmação manual, relatório para impressão) |
@@ -67,7 +68,7 @@ Também há **Arrumar tudo automaticamente**. Antes de cada correção, uma vers
 
 ## Login (simulado)
 
-A página inicial tem *Entrar* e *Criar conta*, mas o login é opcional (*Continuar sem login*). As contas ficam só no navegador e não há segurança real: é apenas demonstração. Conta pronta: usuário **demo**, senha **demo123**.
+O site abre sempre pela **tela de entrada**, sem menu nem outras telas: *Entrar*, *Criar conta* ou *Continuar sem login*. A escolha de continuar sem login vale até fechar a aba; *Sair* e o *Modo apresentação* voltam para a entrada. As contas ficam só no navegador e não há segurança real: é apenas demonstração. Conta pronta: usuário **demo**, senha **demo123**.
 
 ## Assistente jurídico (demonstração)
 

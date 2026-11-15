@@ -45,13 +45,28 @@
       const s = this.current();
       el.innerHTML = s
         ? `<span class="user-chip" title="${K.esc(s.nome)}"><span class="avatar sm" aria-hidden="true">${K.esc(s.nome.trim()[0] || '?').toUpperCase()}</span><b>${K.esc(this.firstName())}</b></span><button type="button" class="user-out" id="logoutBtn">Sair</button>`
-        : '<a class="user-chip login" href="#/inicio/entrar">Entrar</a>';
+        : '<a class="user-chip login" href="#/entrar">Entrar</a>';
     },
+  };
+
+  /* Tela de entrada: aparece antes do site até a pessoa entrar ou escolher "Continuar sem login".
+     A escolha vale até fechar a aba (sessionStorage). */
+  let passouMem = false;
+  K.gate = {
+    target: null,
+    passed() { try { return sessionStorage.getItem('kcf_gate') === '1'; } catch (e) { return passouMem; } },
+    pass() { passouMem = true; try { sessionStorage.setItem('kcf_gate', '1'); } catch (e) { /* ignorado */ } },
+    reset() { passouMem = false; try { sessionStorage.removeItem('kcf_gate'); } catch (e) { /* ignorado */ } },
+    needed() { return !K.auth.current() && !this.passed(); },
+    /** Sai da tela de entrada e vai para onde a pessoa queria ir (ou para o início). */
+    enter() { this.pass(); const t = this.target || '#/inicio'; this.target = null; location.hash = t; },
   };
 
   document.addEventListener('click', (e) => {
     if (!e.target.closest('#logoutBtn')) return;
     K.auth.logout();
+    K.gate.reset();
     K.toast('Você saiu da conta.');
+    location.hash = '#/entrar';
   });
 })();

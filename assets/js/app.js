@@ -39,7 +39,7 @@
    * O checklist fica dentro do editor (painel lateral).
    * ===================================================================== */
   let cleanup = null;
-  const routes = { inicio: viewHome, novo: viewNovo, documentos: viewDocs, editor: viewEditor, glossario: viewGlossario, planos: viewPlanos, kit: viewKit };
+  const routes = { entrar: viewEntrar, inicio: viewHome, novo: viewNovo, documentos: viewDocs, editor: viewEditor, glossario: viewGlossario, planos: viewPlanos, kit: viewKit };
   function router(e) {
     // Âncoras internas (ex.: link "Pular para o conteúdo") não trocam de tela.
     if (e && location.hash && !location.hash.startsWith('#/')) return;
@@ -50,6 +50,13 @@
     if (parts[0] === 'checklist') { location.replace(parts[1] ? '#/editor/' + parts[1] : '#/documentos'); return; }
     let r = parts[0] || 'inicio';
     if (!routes[r]) r = 'inicio';
+    // Antes do site, a tela de entrada (login ou "Continuar sem login").
+    if (r !== 'entrar' && K.gate.needed()) {
+      K.gate.target = location.hash && location.hash.startsWith('#/') ? location.hash : '#/inicio';
+      location.replace('#/entrar');
+      return;
+    }
+    if (r === 'entrar' && K.auth.current()) { location.replace('#/inicio'); return; }
     document.body.dataset.route = r;
     $$('#mainNav a').forEach((a) => a.classList.toggle('active', a.dataset.route === (r === 'editor' ? 'documentos' : r)));
     $('#mainNav').classList.remove('open');
@@ -57,7 +64,7 @@
     window.scrollTo(0, 0);
     routes[r](...parts.slice(1));
     const h1 = view.querySelector('h1');
-    const name = r === 'planos' ? 'Planos' : h1 && r !== 'inicio' ? h1.textContent.trim() : '';
+    const name = r === 'entrar' ? 'Entrar' : r === 'planos' ? 'Planos' : h1 && r !== 'inicio' ? h1.textContent.trim() : '';
     document.title = (name ? name + ' · ' : '') + 'Kit Contrato Fácil';
   }
 
@@ -139,9 +146,8 @@
   /* =====================================================================
    * Tela: Início
    * ===================================================================== */
-  function viewHome(param) {
+  function viewHome() {
     const docs = K.store.load();
-    const sess = K.auth.current();
     const sts = docs.map((d) => K.summary(d).status);
     const count = (st) => sts.filter((s) => s === st).length;
     const recent = [...docs].sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 3);
@@ -157,12 +163,16 @@
           <a class="btn outline-light" href="#/documentos">Meus documentos (${docs.length})</a>
         </div>
       </div>
-      <div class="auth-card" id="authCard">${authCardHTML(sess)}</div>
-    </section>
-    <section class="section home-plans" id="planos-home">
-      <div class="head center"><div class="eyebrow">Planos</div><h2>Comece grátis. Evolua quando precisar.</h2><p>O Grátis já cria contratos com editor e checklist. O Pro libera os 10 tipos de contrato, a análise automática e o revisor.</p></div>
-      ${plansCardsHTML()}
-      <p class="center sm"><a href="#/planos">Comparar os planos em detalhe e ver o kit físico →</a></p>
+      <div class="hero-card" aria-hidden="true">
+        <div class="hc-label">Prévia · Prestação de serviços</div>
+        <div class="hc-title">CONTRATO DE PRESTAÇÃO DE SERVIÇOS</div>
+        <div class="line"></div><div class="line w80"></div><div class="line w60"></div>
+        <ul class="hc-checks">
+          <li class="ok"><span>✓</span> CNPJs válidos das duas partes</li>
+          <li class="ok"><span>✓</span> Valor confere com o extenso</li>
+          <li class="warn"><span>!</span> 1 campo a preencher</li>
+        </ul>
+      </div>
     </section>
     <div class="stats">
       <a href="#/documentos"><b>${docs.length}</b><small>Documentos salvos</small></a>
@@ -192,6 +202,14 @@
         <button class="btn primary" data-open-assistant>Abrir assistente</button>
       </div>
     </section>
+    <section class="section plans-teaser">
+      <div class="pt-text">
+        <div class="eyebrow light">Planos</div>
+        <h2>Comece grátis. Evolua quando precisar.</h2>
+        <p>No Grátis você cria ${K.PLANS.gratis.docs} contratos por mês com editor e checklist. O Pro libera os 10 tipos de contrato, a análise automática e o revisor por ${K.price(K.PLANS.pro.mensal)}/mês.</p>
+      </div>
+      <div class="actions"><a class="btn white" href="#/planos">Ver planos e preços →</a></div>
+    </section>
     <section class="section alt">
       <div class="head"><div class="eyebrow">Conheça a proposta</div><h2>Um kit. Três formas de ajudar.</h2><p>O conceito acadêmico reúne modelos de documentos, conferência de informações e explicações acessíveis em uma única solução.</p></div>
       <div class="cards">
@@ -212,20 +230,42 @@
     </section>`;
     const rc = $('#recent');
     if (rc) bindDocActions(rc, viewHome);
-    const unbind = bindAuthCard($('#authCard'));
-    $('#planos-home').addEventListener('click', (e) => {
-      const b = e.target.closest('[data-plan]');
-      if (b) planAction(b.dataset.plan, b.dataset.ciclo, () => viewHome());
-    });
-    cleanup = unbind;
-    if (param === 'entrar') {
-      const f = $('#loginUser');
-      if (f) { $('#authCard').scrollIntoView({ block: 'center' }); f.focus({ preventScroll: true }); }
-      history.replaceState(null, '', '#/inicio');
-    }
   }
 
-  /* ---------- Cartão de login da página inicial (simulado e opcional) ---------- */
+  /* =====================================================================
+   * Tela de entrada: aparece antes do site (login simulado ou "Continuar sem login") e mostra os planos
+   * ===================================================================== */
+  function viewEntrar() {
+    const render = () => {
+      view.innerHTML = `
+      <div class="gate">
+        <section class="gate-hero">
+          <div class="gate-intro">
+            <div class="gate-brand"><img src="assets/img/logo.svg" alt="" width="64" height="64"><span class="wordmark"><small>Kit</small><span>Contrato <em>Fácil</em></span></span></div>
+            <h1>Contratos mais simples. Decisões mais claras.</h1>
+            <p>Gere minutas com um formulário guiado, edite cada cláusula e confira tudo com o checklist. Entre na sua conta ou continue sem login para conhecer o site.</p>
+            <a class="gate-down" href="#planos-gate" data-scroll-plans>Ver os planos ↓</a>
+          </div>
+          <div class="auth-card" id="authCard">${authCardHTML(null)}</div>
+        </section>
+        <section class="section gate-plans" id="planos-gate">
+          <div class="head center"><div class="eyebrow">Planos</div><h2>Comece grátis. Evolua quando precisar.</h2><p>O Grátis já cria contratos com editor e checklist. O Pro libera os 10 tipos de contrato, a análise automática e o revisor.</p></div>
+          ${plansCardsHTML()}
+        </section>
+        <p class="gate-foot">Projeto acadêmico — Desenvolvimento de Produto · Amanda Lima da Mata, Beatriz Aparecida Moreira, Isadora Nagahara Kumagai e Natalie Camargo Alberto</p>
+      </div>`;
+      bindAuthCard($('#authCard'));
+      $('#planos-gate').addEventListener('click', (e) => {
+        const b = e.target.closest('[data-plan]');
+        if (b) planAction(b.dataset.plan, b.dataset.ciclo, render);
+      });
+      $('[data-scroll-plans]').addEventListener('click', (e) => { e.preventDefault(); $('#planos-gate').scrollIntoView({ behavior: 'smooth' }); });
+    };
+    render();
+    document.title = 'Entrar · Kit Contrato Fácil';
+  }
+
+  /* ---------- Cartão de login (simulado e opcional) ---------- */
   function authCardHTML(sess) {
     if (sess) {
       return `<div class="auth-hello"><span class="avatar lg" aria-hidden="true">${esc((sess.nome.trim()[0] || '?').toUpperCase())}</span>
@@ -252,12 +292,11 @@
         <button class="btn primary full" type="submit">Criar conta</button>
       </form>
       <div class="auth-or"><span>ou</span></div>
-      <a class="btn ghost full" href="#/novo">Continuar sem login →</a>
+      <button type="button" class="btn ghost full" data-continue>Continuar sem login →</button>
       <p class="auth-note">Login simulado para a demonstração: os dados ficam só neste navegador. Não use uma senha real.</p>`;
   }
 
   function bindAuthCard(card) {
-    const redraw = () => { card.innerHTML = authCardHTML(K.auth.current()); };
     card.addEventListener('click', (e) => {
       const tab = e.target.closest('[data-auth-tab]');
       if (tab) {
@@ -268,7 +307,7 @@
         $(criar ? '#suNome' : '#loginUser', card).focus();
       }
       if (e.target.closest('[data-fill-demo]')) { $('#loginUser', card).value = K.auth.DEMO_USER; $('#loginPass', card).value = K.auth.DEMO_PASS; $('#loginPass', card).focus(); }
-      if (e.target.closest('[data-logout]')) { K.auth.logout(); K.toast('Você saiu da conta.'); }
+      if (e.target.closest('[data-continue]')) K.gate.enter();
     });
     card.addEventListener('submit', (e) => {
       e.preventDefault();
@@ -277,6 +316,7 @@
         if (!u.trim() || !pw) { $('#loginErr', card).textContent = 'Informe o usuário e a senha.'; return; }
         if (!K.auth.login(u, pw)) { $('#loginErr', card).textContent = 'Usuário ou senha incorretos.'; $('#loginPass', card).select(); return; }
         K.toast(`Bem-vindo(a), ${K.auth.firstName()}!`);
+        K.gate.enter();
       } else {
         const n = $('#suNome', card).value.trim(), u = $('#suUser', card).value.trim(), pw = $('#suPass', card).value;
         const err = $('#signupErr', card);
@@ -284,10 +324,10 @@
         if (pw.length < 6) { err.textContent = 'A senha precisa ter pelo menos 6 caracteres.'; $('#suPass', card).focus(); return; }
         if (K.auth.register(n, u, pw) === 'existe') { err.textContent = 'Esse usuário já existe. Escolha outro ou entre.'; return; }
         K.toast(`Conta criada! Bem-vindo(a), ${K.auth.firstName()}.`);
+        K.gate.enter();
       }
     });
-    document.addEventListener('kcf:auth', redraw);
-    return () => document.removeEventListener('kcf:auth', redraw);
+    return () => {};
   }
 
   /* =====================================================================
@@ -1462,7 +1502,8 @@
     if (K.assistant && K.assistant.reset) K.assistant.reset();
     if (K.auth.current()) K.auth.logout();
     K.plan.set(escolha);
-    if (location.hash === '#/inicio') router(); else location.hash = '#/inicio';
+    K.gate.reset();
+    if (location.hash === '#/entrar') router(); else location.hash = '#/entrar';
     K.toast(`Pronto para apresentar! Começando no plano ${K.PLANS[escolha].nome}.`);
   }
 
